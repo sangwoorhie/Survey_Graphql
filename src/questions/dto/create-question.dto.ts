@@ -1,7 +1,21 @@
-import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  MaxLength,
+  MinLength,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 
 export class CreateQuestionDto {
-  @IsNotEmpty({ message: '질문을 작성해주세요.' })
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(1)
+  @Max(5)
+  readonly number: number;
+
+  @IsNotEmpty()
   @IsString()
   @MinLength(10)
   @MaxLength(50)

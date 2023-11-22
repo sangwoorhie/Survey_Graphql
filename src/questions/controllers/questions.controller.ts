@@ -16,55 +16,66 @@ import { DeleteQuestionDto } from '../dto/delete-question.dto';
 export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) {}
 
-  // 질문 목록조회
+  // 문항 목록조회
   @Get('/:surveyId/questions')
   async getQuestions(@Param('surveyId') surveyId: number) {
-    return await this.questionsService.getQuestions(surveyId);
+    const questions = await this.questionsService.getQuestions(surveyId);
+    return questions;
   }
 
-  // 질문 상세조회
+  // 문항 상세조회
   @Get('/:surveyId/questions/:questionId')
   async getQuestionById(
     @Param('surveyId') surveyId: number,
     @Param('questionId') questionId: number,
   ) {
-    return await this.questionsService.getQuestionById(surveyId, questionId);
+    const question = await this.questionsService.getQuestionById(
+      surveyId,
+      questionId,
+    );
+    return question;
   }
 
-  // 질문 생성
+  // 문항 생성
   @Post('/:surveyId/questions')
   async createQuestion(
     @Param('surveyId') surveyId: number,
     @Body() createDto: CreateQuestionDto,
   ) {
-    return await this.questionsService.createQuestion(surveyId, createDto);
+    const create = await this.questionsService.createQuestion(
+      surveyId,
+      createDto,
+    );
+    return create;
   }
 
-  // 질문 수정
+  // 문항 수정
   @Put('/:surveyId/questions/:questionId')
   async updateQuestion(
     @Param('surveyId') surveyId: number,
     @Param('questionId') questionId: number,
     @Body() updateDto: UpdateQuestionDto,
   ) {
-    return await this.questionsService.updateQuestion(
+    const update = await this.questionsService.updateQuestion(
       surveyId,
       questionId,
       updateDto,
     );
+    return update;
   }
 
-  // 질문 삭제
+  // 문항 삭제
   @Delete('/:surveyId/questions/:questionId')
   async deleteQuestion(
     @Param('surveyId') surveyId: number,
     @Param('questionId') questionId: number,
     @Body() deleteDto: DeleteQuestionDto,
   ) {
-    return await this.questionsService.deleteQuestion(
+    const remove = await this.questionsService.deleteQuestion(
       surveyId,
       questionId,
       deleteDto,
     );
+    return remove;
   }
 }

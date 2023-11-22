@@ -16,44 +16,47 @@ import { DeleteOptionDto } from '../dto/delete-option.dto';
 export class OptionsController {
   constructor(private readonly OptionsService: OptionsService) {}
 
-  // 옵션 목록조회
+  // 선택지 목록조회
   @Get('/:surveyId/questions/:questionId/options')
   async getOptions(
     @Param('surveyId') surveyId: number,
     @Param('questionId') questionId: number,
   ) {
-    return await this.OptionsService.getOptions(surveyId, questionId);
+    const options = await this.OptionsService.getOptions(surveyId, questionId);
+    return options;
   }
 
-  // 옵션 상세조회
+  // 선택지 상세조회
   @Get('/:surveyId/questions/:questionId/options/:optionId')
   async getOptionById(
     @Param('surveyId') surveyId: number,
     @Param('questionId') questionId: number,
     @Param('optionId') optionId: number,
   ) {
-    return await this.OptionsService.getOptionById(
+    const option = await this.OptionsService.getOptionById(
       surveyId,
       questionId,
       optionId,
     );
+    return option;
   }
 
-  // 옵션 생성
+  // 선택지 생성
   @Post('/:surveyId/questions/:questionId/options')
   async createOption(
     @Param('surveyId') surveyId: number,
     @Param('questionId') questionId: number,
     @Body() createDto: CreateOptionDto,
   ) {
-    return await this.OptionsService.createOption(
+    const create = await this.OptionsService.createOption(
       surveyId,
       questionId,
       createDto,
     );
+    return create;
   }
 
-  // 옵션 수정
+  // 선택지 수정
   @Patch('/:surveyId/questions/:questionId/options/:optionId')
   async updateOption(
     @Param('surveyId') surveyId: number,
@@ -61,15 +64,16 @@ export class OptionsController {
     @Param('optionId') optionId: number,
     @Body() updateDto: UpdateOptionDto,
   ) {
-    return await this.OptionsService.updateOption(
+    const update = await this.OptionsService.updateOption(
       surveyId,
       questionId,
       optionId,
       updateDto,
     );
+    return update;
   }
 
-  // 옵션 삭제
+  // 선택지 삭제
   @Delete('/:surveyId/questions/:questionId/options/:optionId')
   async deleteOption(
     @Param('surveyId') surveyId: number,
@@ -77,11 +81,12 @@ export class OptionsController {
     @Param('optionId') optionId: number,
     @Body() deleteDto: DeleteOptionDto,
   ) {
-    return await this.OptionsService.deleteOption(
+    const remove = await this.OptionsService.deleteOption(
       surveyId,
       questionId,
       optionId,
       deleteDto,
     );
+    return remove;
   }
 }

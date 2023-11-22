@@ -18,11 +18,20 @@ export class Questions {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  number: number;
+
   @Column({
     type: 'varchar',
     nullable: false,
   })
   content: string;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  isAnswered: boolean;
 
   @CreateDateColumn({ name: 'createdAt', type: 'timestamp' })
   createdAt: Date;

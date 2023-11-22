@@ -27,6 +27,12 @@ export class Surveys {
   })
   description: string;
 
+  @Column({
+    type: 'boolean',
+    default: false,
+  })
+  isAnswered: boolean;
+
   @Column('varchar', { length: 20 })
   password: string;
 

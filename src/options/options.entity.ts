@@ -18,6 +18,9 @@ export class Options {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  number: number;
+
   @Column({
     type: 'varchar',
     nullable: false,

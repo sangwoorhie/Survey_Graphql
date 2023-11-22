@@ -1,13 +1,27 @@
-import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 export class UpdateQuestionDto {
-  @IsNotEmpty({ message: '질문을 작성해주세요.' })
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(1)
+  @Max(5)
+  readonly newNumber: number;
+
+  @IsNotEmpty()
   @IsString()
   @MinLength(10)
   @MaxLength(50)
-  readonly newContent: string; // 제목
+  readonly newContent: string;
 
-  @IsNotEmpty({ message: '비밀번호를 입력해주세요.' })
+  @IsNotEmpty()
   @IsString()
   readonly password: string;
 }

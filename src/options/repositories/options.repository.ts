@@ -8,38 +8,47 @@ export class OptionsRepository extends Repository<Options> {
   constructor(private readonly dataSource: DataSource) {
     super(Options, dataSource.createEntityManager());
   }
-  // 옵션 목록조회
-  async getOptions() {}
+  // 선택지 목록조회
+  async getOptions(questionId: number): Promise<Options[]> {
+    const options = await this.find({
+      where: { id: questionId },
+      order: { number: 'ASC' },
+      select: ['number', 'content', 'score'],
+    });
+    return options;
+  }
 
-  // 옵션 상세조회
+  // 선택지 상세조회
   async getOptionById(optionId: number): Promise<Options> {
     const option = await this.findOne({
       where: { id: optionId },
+      select: ['id', 'number', 'content', 'score', 'createdAt', 'updatedAt'],
     });
     return option;
   }
 
-  // 옵션 생성
+  // 선택지 생성
   async createOption(createDto: CreateOptionDto): Promise<Options> {
     const create = this.create(createDto);
     return await this.save(create);
   }
 
-  // 옵션 수정
+  // 선택지 수정
   async updateOption(
     optionId: number,
+    newNumber: number,
     newContent: string,
     newScore: number,
   ): Promise<Options> {
     await this.update(
       { id: optionId },
-      { content: newContent, score: newScore },
+      { number: newNumber, content: newContent, score: newScore },
     );
     const update = await this.findOne({ where: { id: optionId } });
     return update;
   }
 
-  // 옵션 삭제
+  // 선택지 삭제
   async deleteOption(optionId: number): Promise<any> {
     const remove = await this.delete(optionId);
     return remove;

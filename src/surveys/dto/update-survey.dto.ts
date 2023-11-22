@@ -4,14 +4,14 @@ export class UpdateSurveyDto {
   @IsString()
   @MinLength(10)
   @MaxLength(50)
-  readonly newTitle?: string;
+  readonly newTitle: string;
 
   @IsString()
   @MinLength(20)
   @MaxLength(500)
-  readonly newDescription?: string;
+  readonly newDescription: string;
 
-  @IsNotEmpty({ message: '비밀번호를 입력해주세요.' })
+  @IsNotEmpty()
   @IsString()
   readonly password: string;
 }

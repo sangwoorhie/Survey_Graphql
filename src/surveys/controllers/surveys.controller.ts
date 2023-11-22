@@ -20,19 +20,22 @@ export class SurveysController {
   // 설문지 목록조회
   @Get()
   async getSurveys() {
-    return await this.surveysService.getSurveys();
+    const surveys = await this.surveysService.getSurveys();
+    return surveys;
   }
 
   // 설문지 상세조회
   @Get('/:surveyId')
   async getSurveyById(@Param('surveyId') surveyId: number) {
-    return await this.surveysService.getSurveyById(surveyId);
+    const survey = await this.surveysService.getSurveyById(surveyId);
+    return survey;
   }
 
   // 설문지 생성
   @Post()
   async createSurvey(@Body() createDto: CreateSurveyDto) {
-    return await this.surveysService.createSurvey(createDto);
+    const create = await this.surveysService.createSurvey(createDto);
+    return create;
   }
 
   // 설문지 수정
@@ -41,7 +44,8 @@ export class SurveysController {
     @Param('surveyId') surveyId: number,
     @Body() updateDto: UpdateSurveyDto,
   ) {
-    return await this.surveysService.updateSurvey(updateDto, surveyId);
+    const update = await this.surveysService.updateSurvey(updateDto, surveyId);
+    return update;
   }
 
   // 설문지 삭제
@@ -50,6 +54,7 @@ export class SurveysController {
     @Param('surveyId') surveyId: number,
     @Body() deleteDto: DeleteSurveyDto,
   ) {
-    await this.surveysService.deleteSurvey(deleteDto, surveyId);
+    const remove = this.surveysService.deleteSurvey(deleteDto, surveyId);
+    return remove;
   }
 }

@@ -10,7 +10,13 @@ export class SurveysRepository extends Repository<Surveys> {
   }
   // 설문지 목록조회
   async getSurveys(): Promise<
-    { id: number; title: string; createdAt: Date; updatedAt: Date }[]
+    {
+      id: number;
+      title: string;
+      description: string;
+      createdAt: Date;
+      updatedAt: Date;
+    }[]
   > {
     const result = await this.find({
       order: { createdAt: 'DESC' },
@@ -21,6 +27,7 @@ export class SurveysRepository extends Repository<Surveys> {
       return {
         id: survey.id,
         title: survey.title,
+        description: survey.description,
         createdAt: survey.createdAt,
         updatedAt: survey.updatedAt,
       };
@@ -33,6 +40,15 @@ export class SurveysRepository extends Repository<Surveys> {
   async getSurveyById(surveyId: number): Promise<Surveys> {
     const survey = await this.findOne({
       where: { id: surveyId },
+      order: { createdAt: 'DESC' },
+      select: [
+        'id',
+        'title',
+        'description',
+        'isAnswered',
+        'createdAt',
+        'updatedAt',
+      ],
     });
     return survey;
   }
@@ -48,7 +64,7 @@ export class SurveysRepository extends Repository<Surveys> {
     surveyId: number,
     newTitle: string,
     newDescription: string,
-  ) {
+  ): Promise<Surveys> {
     await this.update(
       { id: surveyId },
       { title: newTitle, description: newDescription },

@@ -19,6 +19,9 @@ export class Answers {
   id: number;
 
   @Column()
+  number: number;
+
+  @Column()
   totalScore: number;
 
   @CreateDateColumn({ name: 'createdAt', type: 'timestamp' })
