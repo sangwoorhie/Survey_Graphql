@@ -11,10 +11,12 @@ export class QuestionsRepository extends Repository<Questions> {
   // 문항 목록조회
   async getQuestions(surveyId: number): Promise<Questions[]> {
     const questions = await this.find({
-      where: { id: surveyId },
+      where: { survey: { id: surveyId } },
+      relations: ['survey'],
       order: { number: 'ASC' },
-      select: ['number', 'content', 'isAnswered'],
+      select: ['id', 'number', 'content', 'isAnswered'],
     });
+    console.log(questions);
     return questions;
   }
 

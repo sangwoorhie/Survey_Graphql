@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { Surveys } from '../surveys.entity';
 import { CreateSurveyDto } from '../dto/create-survey.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class SurveysRepository extends Repository<Surveys> {
@@ -18,19 +19,9 @@ export class SurveysRepository extends Repository<Surveys> {
       updatedAt: Date;
     }[]
   > {
-    const result = await this.find({
+    const surveys = await this.find({
       order: { createdAt: 'DESC' },
       select: ['id', 'title', 'createdAt', 'updatedAt'],
-    });
-
-    const surveys = result.map((survey) => {
-      return {
-        id: survey.id,
-        title: survey.title,
-        description: survey.description,
-        createdAt: survey.createdAt,
-        updatedAt: survey.updatedAt,
-      };
     });
 
     return surveys;
@@ -38,24 +29,32 @@ export class SurveysRepository extends Repository<Surveys> {
 
   // 설문지 상세조회
   async getSurveyById(surveyId: number): Promise<Surveys> {
-    const survey = await this.findOne({
-      where: { id: surveyId },
-      order: { createdAt: 'DESC' },
-      select: [
-        'id',
-        'title',
-        'description',
-        'isAnswered',
-        'createdAt',
-        'updatedAt',
-      ],
-    });
+    const survey = await this.createQueryBuilder('survey')
+      .leftJoinAndSelect('survey.question', 'question')
+      .select([
+        'survey.id',
+        'survey.title',
+        'survey.description',
+        'survey.createdAt',
+        'survey.updatedAt',
+        'question.number',
+        'question.content',
+      ])
+      .where('survey.id = :id', { id: surveyId })
+      .getOne();
+
     return survey;
   }
 
   // 설문지 생성
   async createSurvey(createDto: CreateSurveyDto): Promise<Surveys> {
-    const create = this.create(createDto);
+    const { title, description, password } = createDto;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const create = this.create({
+      title,
+      description,
+      password: hashedPassword,
+    });
     return await this.save(create);
   }
 

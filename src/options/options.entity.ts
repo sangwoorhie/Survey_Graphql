@@ -13,7 +13,7 @@ import {
 import { Questions } from 'src/questions/questions.entity';
 import { Answers } from 'src/answers/answers.entity';
 
-@Entity({ schema: 'surveyProject', name: 'Options' })
+@Entity({ schema: 'surveyproject', name: 'Options' })
 export class Options {
   @PrimaryGeneratedColumn()
   id: number;

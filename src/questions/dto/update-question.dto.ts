@@ -20,8 +20,4 @@ export class UpdateQuestionDto {
   @MinLength(10)
   @MaxLength(50)
   readonly newContent: string;
-
-  @IsNotEmpty()
-  @IsString()
-  readonly password: string;
 }

@@ -10,7 +10,7 @@ import {
 import { Questions } from 'src/questions/questions.entity';
 import { Answers } from 'src/answers/answers.entity';
 
-@Entity({ schema: 'surveyProject', name: 'Surveys' })
+@Entity({ schema: 'surveyproject', name: 'Surveys' })
 export class Surveys {
   @PrimaryGeneratedColumn()
   id: number;
@@ -33,7 +33,10 @@ export class Surveys {
   })
   isAnswered: boolean;
 
-  @Column('varchar', { length: 20 })
+  @Column({
+    type: 'varchar',
+    nullable: false,
+  })
   password: string;
 
   @CreateDateColumn({ name: 'createdAt', type: 'timestamp' })

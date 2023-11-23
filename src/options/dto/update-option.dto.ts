@@ -26,8 +26,4 @@ export class UpdateOptionDto {
   @Min(1)
   @Max(5)
   readonly newScore: number;
-
-  @IsNotEmpty()
-  @IsString()
-  readonly password: string;
 }

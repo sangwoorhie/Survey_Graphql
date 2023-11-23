@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { CreateQuestionDto } from '../dto/create-question.dto';
 import { UpdateQuestionDto } from '../dto/update-question.dto';
-import { DeleteQuestionDto } from '../dto/delete-question.dto';
 
 @Controller('surveys')
 export class QuestionsController {
@@ -69,12 +68,10 @@ export class QuestionsController {
   async deleteQuestion(
     @Param('surveyId') surveyId: number,
     @Param('questionId') questionId: number,
-    @Body() deleteDto: DeleteQuestionDto,
   ) {
     const remove = await this.questionsService.deleteQuestion(
       surveyId,
       questionId,
-      deleteDto,
     );
     return remove;
   }

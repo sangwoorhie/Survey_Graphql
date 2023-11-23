@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { CreateOptionDto } from '../dto/create-option.dto';
 import { UpdateOptionDto } from '../dto/update-option.dto';
-import { DeleteOptionDto } from '../dto/delete-option.dto';
 
 @Controller('surveys')
 export class OptionsController {
@@ -79,13 +78,11 @@ export class OptionsController {
     @Param('surveyId') surveyId: number,
     @Param('questionId') questionId: number,
     @Param('optionId') optionId: number,
-    @Body() deleteDto: DeleteOptionDto,
   ) {
     const remove = await this.OptionsService.deleteOption(
       surveyId,
       questionId,
       optionId,
-      deleteDto,
     );
     return remove;
   }
