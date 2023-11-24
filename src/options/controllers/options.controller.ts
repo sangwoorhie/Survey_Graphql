@@ -14,7 +14,7 @@ import { OptionDto } from '../dto/option.dto';
 export class OptionsController {
   constructor(private readonly OptionsService: OptionsService) {}
 
-  // 선택지 목록조회
+  // 선택지 목록조회(완성)
   @Get('/:surveyId/questions/:questionId/options')
   async getOptions(
     @Param('surveyId') surveyId: number,
