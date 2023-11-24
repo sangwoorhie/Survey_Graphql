@@ -8,8 +8,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { CreateOptionDto } from '../dto/create-option.dto';
-import { UpdateOptionDto } from '../dto/update-option.dto';
+import { OptionDto } from '../dto/option.dto';
 
 @Controller('surveys')
 export class OptionsController {
@@ -45,12 +44,12 @@ export class OptionsController {
   async createOption(
     @Param('surveyId') surveyId: number,
     @Param('questionId') questionId: number,
-    @Body() createDto: CreateOptionDto,
+    @Body() optionDto: OptionDto,
   ) {
     const create = await this.OptionsService.createOption(
       surveyId,
       questionId,
-      createDto,
+      optionDto,
     );
     return create;
   }
@@ -61,13 +60,13 @@ export class OptionsController {
     @Param('surveyId') surveyId: number,
     @Param('questionId') questionId: number,
     @Param('optionId') optionId: number,
-    @Body() updateDto: UpdateOptionDto,
+    @Body() optionDto: OptionDto,
   ) {
     const update = await this.OptionsService.updateOption(
       surveyId,
       questionId,
       optionId,
-      updateDto,
+      optionDto,
     );
     return update;
   }

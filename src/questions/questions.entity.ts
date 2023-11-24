@@ -18,6 +18,12 @@ export class Questions {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({
+    type: 'int',
+    nullable: false,
+  })
+  surveyId: number;
+
   @Column()
   number: number;
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { Options } from '../options.entity';
-import { CreateOptionDto } from '../dto/create-option.dto';
+import { OptionDto } from '../dto/option.dto';
 
 @Injectable()
 export class OptionsRepository extends Repository<Options> {
@@ -22,28 +22,67 @@ export class OptionsRepository extends Repository<Options> {
   async getOptionById(optionId: number): Promise<Options> {
     const option = await this.findOne({
       where: { id: optionId },
-      select: ['id', 'number', 'content', 'score', 'createdAt', 'updatedAt'],
+      select: [
+        'surveyId',
+        'questionId',
+        'id',
+        'number',
+        'content',
+        'score',
+        'createdAt',
+        'updatedAt',
+      ],
     });
     return option;
   }
 
   // 선택지 생성
-  async createOption(createDto: CreateOptionDto): Promise<Options> {
-    const create = this.create(createDto);
-    return await this.save(create);
+  async createOption(
+    surveyId: number,
+    questionId: number,
+    number: number,
+    content: string,
+    score: number,
+  ): Promise<Options> {
+    const create = this.create({
+      surveyId,
+      questionId,
+      number,
+      content,
+      score,
+    });
+    await this.save(create);
+    return create;
+  }
+
+  // 선택지 중복검사
+  async existOption(
+    surveyId: number,
+    questionId: number,
+    number: number,
+    content: string,
+    score: number,
+  ) {
+    const IsExistNumber = await this.findOne({
+      where: { surveyId, questionId, number },
+    });
+    const IsExistContent = await this.findOne({
+      where: { surveyId, questionId, content },
+    });
+    const IsExistScore = await this.findOne({
+      where: { surveyId, questionId, score },
+    });
+    return { IsExistNumber, IsExistContent, IsExistScore };
   }
 
   // 선택지 수정
   async updateOption(
     optionId: number,
-    newNumber: number,
-    newContent: string,
-    newScore: number,
+    number: number,
+    content: string,
+    score: number,
   ): Promise<Options> {
-    await this.update(
-      { id: optionId },
-      { number: newNumber, content: newContent, score: newScore },
-    );
+    await this.update({ id: optionId }, { number, content, score });
     const update = await this.findOne({ where: { id: optionId } });
     return update;
   }

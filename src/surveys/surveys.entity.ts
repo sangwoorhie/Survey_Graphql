@@ -33,11 +33,8 @@ export class Surveys {
   })
   isAnswered: boolean;
 
-  @Column({
-    type: 'varchar',
-    nullable: false,
-  })
-  password: string;
+  @Column()
+  totalScore: number;
 
   @CreateDateColumn({ name: 'createdAt', type: 'timestamp' })
   createdAt: Date;

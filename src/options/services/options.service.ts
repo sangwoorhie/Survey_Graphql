@@ -4,14 +4,11 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
-import bcrypt from 'bcrypt';
 import { OptionsRepository } from '../repositories/options.repository';
 import { SurveysRepository } from 'src/surveys/repositories/surveys.repository';
 import { QuestionsRepository } from 'src/questions/repositories/questions.repository';
-import { CreateOptionDto } from '../dto/create-option.dto';
-import { UpdateOptionDto } from '../dto/update-option.dto';
+import { OptionDto } from '../dto/option.dto';
 
 @Injectable()
 export class OptionsService {
@@ -78,7 +75,7 @@ export class OptionsService {
   async createOption(
     surveyId: number,
     questionId: number,
-    createDto: CreateOptionDto,
+    optionDto: OptionDto,
   ) {
     try {
       const survey = await this.surveysRepository.getSurveyById(surveyId);
@@ -90,37 +87,39 @@ export class OptionsService {
       if (!question) {
         throw new NotFoundException('해당 문항을 찾을 수 없습니다.');
       }
-      const { number, content, score } = createDto;
+      const { number, content, score } = optionDto;
       if (!number || !content || !score) {
         throw new BadRequestException(
           '미기입된 항목이 있습니다. 모두 작성해주세요. 선택지 번호 및 점수는 각각 1부터 5까지 생성 가능합니다.',
         );
       }
-      const IsExistNumber = await this.optionsRepository.findOne({
-        where: { number },
-      });
-      if (IsExistNumber) {
+      const IsExistOption = await this.optionsRepository.existOption(
+        surveyId,
+        questionId,
+        number,
+        content,
+        score,
+      );
+      if (IsExistOption.IsExistNumber) {
         throw new ConflictException(
           '중복된 번호의 다른 선택지가 이미 존재합니다. 다른 번호로 작성해주세요.',
         );
-      }
-      const IsExistContent = await this.optionsRepository.findOne({
-        where: { content },
-      });
-      if (IsExistContent) {
+      } else if (IsExistOption.IsExistContent) {
         throw new ConflictException(
           '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 작성해주세요.',
         );
-      }
-      const IsExistScore = await this.optionsRepository.findOne({
-        where: { score },
-      });
-      if (IsExistScore) {
+      } else if (IsExistOption.IsExistScore) {
         throw new ConflictException(
           '중복된 점수의 다른 선택지가 이미 존재합니다. 다른 점수로 작성해주세요.',
         );
       }
-      const create = await this.optionsRepository.createOption(createDto);
+      const create = await this.optionsRepository.createOption(
+        surveyId,
+        questionId,
+        number,
+        content,
+        score,
+      );
       return create;
     } catch (error) {
       this.logger.error(
@@ -135,7 +134,7 @@ export class OptionsService {
     surveyId: number,
     questionId: number,
     optionId: number,
-    updateDto: UpdateOptionDto,
+    optionDto: OptionDto,
   ) {
     try {
       const survey = await this.surveysRepository.getSurveyById(surveyId);
@@ -151,41 +150,37 @@ export class OptionsService {
       if (!option) {
         throw new NotFoundException('해당 선택지를 찾을 수 없습니다.');
       }
-      const { newNumber, newContent, newScore } = updateDto;
-      if (!newNumber || !newContent || !newScore) {
+      const { number, content, score } = optionDto;
+      if (!number || !content || !score) {
         throw new BadRequestException(
           '미기입된 항목이 있습니다. 모두 작성해주세요. 선택지 번호 및 점수는 각각 1부터 5까지 수정 가능합니다.',
         );
       }
-      const IsExistNumber = await this.optionsRepository.findOne({
-        where: { number: newNumber },
-      });
-      if (IsExistNumber) {
+      const IsExistOption = await this.optionsRepository.existOption(
+        surveyId,
+        questionId,
+        number,
+        content,
+        score,
+      );
+      if (IsExistOption.IsExistNumber) {
         throw new ConflictException(
           '중복된 번호의 다른 선택지가 이미 존재합니다. 다른 번호로 작성해주세요.',
         );
-      }
-      const IsExistContent = await this.optionsRepository.findOne({
-        where: { content: newContent },
-      });
-      if (IsExistContent) {
+      } else if (IsExistOption.IsExistContent) {
         throw new ConflictException(
           '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 작성해주세요.',
         );
-      }
-      const IsExistScore = await this.optionsRepository.findOne({
-        where: { score: newScore },
-      });
-      if (IsExistScore) {
+      } else if (IsExistOption.IsExistScore) {
         throw new ConflictException(
           '중복된 점수의 다른 선택지가 이미 존재합니다. 다른 점수로 작성해주세요.',
         );
       }
       const update = await this.optionsRepository.updateOption(
         optionId,
-        newNumber,
-        newContent,
-        newScore,
+        number,
+        content,
+        score,
       );
       return update;
     } catch (error) {

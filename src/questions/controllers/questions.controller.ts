@@ -5,11 +5,11 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
 } from '@nestjs/common';
-import { CreateQuestionDto } from '../dto/create-question.dto';
-import { UpdateQuestionDto } from '../dto/update-question.dto';
+import { QuestionDto } from '../dto/question.dto';
 
 @Controller('surveys')
 export class QuestionsController {
@@ -39,26 +39,26 @@ export class QuestionsController {
   @Post('/:surveyId/questions')
   async createQuestion(
     @Param('surveyId') surveyId: number,
-    @Body() createDto: CreateQuestionDto,
+    @Body() questionDto: QuestionDto,
   ) {
     const create = await this.questionsService.createQuestion(
       surveyId,
-      createDto,
+      questionDto,
     );
     return create;
   }
 
   // 문항 수정
-  @Put('/:surveyId/questions/:questionId')
+  @Patch('/:surveyId/questions/:questionId')
   async updateQuestion(
     @Param('surveyId') surveyId: number,
     @Param('questionId') questionId: number,
-    @Body() updateDto: UpdateQuestionDto,
+    @Body() questionDto: QuestionDto,
   ) {
     const update = await this.questionsService.updateQuestion(
       surveyId,
       questionId,
-      updateDto,
+      questionDto,
     );
     return update;
   }

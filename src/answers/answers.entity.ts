@@ -18,11 +18,20 @@ export class Answers {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  number: number;
+  @Column({
+    type: 'int',
+    nullable: false,
+  })
+  surveyId: number;
+
+  @Column({
+    type: 'int',
+    nullable: false,
+  })
+  questionId: number;
 
   @Column()
-  totalScore: number;
+  number: number;
 
   @CreateDateColumn({ name: 'createdAt', type: 'timestamp' })
   createdAt: Date;

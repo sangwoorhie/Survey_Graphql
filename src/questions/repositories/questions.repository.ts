@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { Questions } from '../questions.entity';
-import { CreateQuestionDto } from '../dto/create-question.dto';
 
 @Injectable()
 export class QuestionsRepository extends Repository<Questions> {
@@ -12,11 +11,9 @@ export class QuestionsRepository extends Repository<Questions> {
   async getQuestions(surveyId: number): Promise<Questions[]> {
     const questions = await this.find({
       where: { survey: { id: surveyId } },
-      relations: ['survey'],
       order: { number: 'ASC' },
-      select: ['id', 'number', 'content', 'isAnswered'],
+      select: ['number', 'content', 'isAnswered'],
     });
-    console.log(questions);
     return questions;
   }
 
@@ -24,8 +21,8 @@ export class QuestionsRepository extends Repository<Questions> {
   async getQuestionById(questionId: number): Promise<Questions> {
     const question = await this.findOne({
       where: { id: questionId },
-      order: { createdAt: 'DESC' },
       select: [
+        'surveyId',
         'id',
         'number',
         'content',
@@ -38,21 +35,38 @@ export class QuestionsRepository extends Repository<Questions> {
   }
 
   // 문항 생성
-  async createQuestion(createDto: CreateQuestionDto): Promise<Questions> {
-    const create = this.create(createDto);
-    return await this.save(create);
+  async createQuestion(
+    surveyId: number,
+    number: number,
+    content: string,
+  ): Promise<Questions> {
+    const create = this.create({
+      surveyId,
+      number,
+      content,
+    });
+    await this.save(create);
+    return create;
+  }
+
+  // 문항 중복검사
+  async existQuestion(surveyId: number, number: number, content: string) {
+    const IsExistNumber = await this.findOne({
+      where: { surveyId, number },
+    });
+    const IsExistContent = await this.findOne({
+      where: { surveyId, content },
+    });
+    return { IsExistNumber, IsExistContent };
   }
 
   // 문항 수정
   async updateQuestion(
     questionId: number,
-    newNumber: number,
-    newContent: string,
+    number: number,
+    content: string,
   ): Promise<Questions> {
-    await this.update(
-      { id: questionId },
-      { number: newNumber, content: newContent },
-    );
+    await this.update({ id: questionId }, { number, content });
     const update = await this.findOne({ where: { id: questionId } });
     return update;
   }

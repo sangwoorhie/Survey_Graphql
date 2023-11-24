@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { Surveys } from '../surveys.entity';
-import { CreateSurveyDto } from '../dto/create-survey.dto';
-import * as bcrypt from 'bcrypt';
+import { SurveyDto } from '../dto/create-survey.dto';
 
 @Injectable()
 export class SurveysRepository extends Repository<Surveys> {
@@ -47,27 +46,30 @@ export class SurveysRepository extends Repository<Surveys> {
   }
 
   // 설문지 생성
-  async createSurvey(createDto: CreateSurveyDto): Promise<Surveys> {
-    const { title, description, password } = createDto;
-    const hashedPassword = await bcrypt.hash(password, 10);
+  async createSurvey(surveyDto: SurveyDto): Promise<Surveys> {
+    const { title, description } = surveyDto;
     const create = this.create({
       title,
       description,
-      password: hashedPassword,
     });
     return await this.save(create);
+  }
+
+  // 설문지 중복검사
+  async existSurvey(surveyDto: SurveyDto) {
+    const { title, description } = surveyDto;
+    const existTitle = await this.findOne({ where: { title } });
+    const existDescription = await this.findOne({ where: { description } });
+    return { existTitle, existDescription };
   }
 
   // 설문지 수정
   async updateSurvey(
     surveyId: number,
-    newTitle: string,
-    newDescription: string,
+    title: string,
+    description: string,
   ): Promise<Surveys> {
-    await this.update(
-      { id: surveyId },
-      { title: newTitle, description: newDescription },
-    );
+    await this.update({ id: surveyId }, { title, description });
     const update = await this.findOne({ where: { id: surveyId } });
     return update;
   }

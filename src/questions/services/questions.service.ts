@@ -4,14 +4,11 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
-import bcrypt from 'bcrypt';
 
 import { QuestionsRepository } from '../repositories/questions.repository';
 import { SurveysRepository } from 'src/surveys/repositories/surveys.repository';
-import { CreateQuestionDto } from '../dto/create-question.dto';
-import { UpdateQuestionDto } from '../dto/update-question.dto';
+import { QuestionDto } from '../dto/question.dto';
 
 @Injectable()
 export class QuestionsService {
@@ -65,35 +62,37 @@ export class QuestionsService {
   }
 
   // 문항 생성
-  async createQuestion(surveyId: number, createDto: CreateQuestionDto) {
+  async createQuestion(surveyId: number, questionDto: QuestionDto) {
     try {
       const survey = await this.surveysRepository.getSurveyById(surveyId);
       if (!survey) {
         throw new NotFoundException('해당 설문지를 찾을 수 없습니다.');
       }
-      const { number, content } = createDto;
+      const { number, content } = questionDto;
       if (!number || !content) {
         throw new BadRequestException(
           '미기입된 항목이 있습니다. 모두 작성해주세요. 문항 번호는 1번부터 5번까지 생성 가능합니다.',
         );
       }
-      const IsExistNumber = await this.questionsRepository.findOne({
-        where: { number },
-      });
-      if (IsExistNumber) {
+      const IsExistQuestion = await this.questionsRepository.existQuestion(
+        surveyId,
+        number,
+        content,
+      );
+      if (IsExistQuestion.IsExistNumber) {
         throw new ConflictException(
           '중복된 번호의 다른 문항이 이미 존재합니다. 다른 번호로 작성해주세요.',
         );
-      }
-      const IsExistContent = await this.questionsRepository.findOne({
-        where: { content },
-      });
-      if (IsExistContent) {
+      } else if (IsExistQuestion.IsExistContent) {
         throw new ConflictException(
           '중복된 내용의 다른 문항이 이미 존재합니다. 다른 내용으로 작성해주세요.',
         );
       }
-      const create = await this.questionsRepository.createQuestion(createDto);
+      const create = await this.questionsRepository.createQuestion(
+        surveyId,
+        number,
+        content,
+      );
       return create;
     } catch (error) {
       this.logger.error(
@@ -107,7 +106,7 @@ export class QuestionsService {
   async updateQuestion(
     surveyId: number,
     questionId: number,
-    updateDto: UpdateQuestionDto,
+    questionDto: QuestionDto,
   ) {
     try {
       const survey = await this.surveysRepository.getSurveyById(surveyId);
@@ -119,32 +118,30 @@ export class QuestionsService {
       if (!question) {
         throw new NotFoundException('해당 문항을 찾을 수 없습니다.');
       }
-      const { newNumber, newContent } = updateDto;
-      if (!newNumber || !newContent) {
+      const { number, content } = questionDto;
+      if (!number || !content) {
         throw new BadRequestException(
           '미기입된 항목이 있습니다. 모두 작성해주세요. 문항 번호는 1번부터 5번까지 수정 가능합니다.',
         );
       }
-      const IsExistNumber = await this.questionsRepository.findOne({
-        where: { number: newNumber },
-      });
-      if (IsExistNumber) {
+      const IsExistQuestion = await this.questionsRepository.existQuestion(
+        surveyId,
+        number,
+        content,
+      );
+      if (IsExistQuestion.IsExistNumber) {
         throw new ConflictException(
           '중복된 번호의 다른 문항이 이미 존재합니다. 다른 번호로 작성해주세요.',
         );
-      }
-      const IsExistContent = await this.questionsRepository.findOne({
-        where: { content: newContent },
-      });
-      if (IsExistContent) {
+      } else if (IsExistQuestion.IsExistContent) {
         throw new ConflictException(
           '중복된 내용의 다른 문항이 이미 존재합니다. 다른 내용으로 작성해주세요.',
         );
       }
       const update = await this.questionsRepository.updateQuestion(
         questionId,
-        newNumber,
-        newContent,
+        number,
+        content,
       );
       return update;
     } catch (error) {

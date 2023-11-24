@@ -1,14 +1,14 @@
 import {
   IsNotEmpty,
-  IsNumber,
   IsString,
-  Max,
   MaxLength,
-  Min,
   MinLength,
+  IsNumber,
+  Min,
+  Max,
 } from 'class-validator';
 
-export class CreateOptionDto {
+export class QuestionDto {
   @IsNotEmpty()
   @IsNumber()
   @Min(1)
@@ -20,10 +20,4 @@ export class CreateOptionDto {
   @MinLength(10)
   @MaxLength(50)
   readonly content: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  @Min(1)
-  @Max(5)
-  readonly score: number;
 }

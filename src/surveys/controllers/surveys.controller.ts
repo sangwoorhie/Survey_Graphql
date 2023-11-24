@@ -1,6 +1,4 @@
-import { CreateSurveyDto } from '../dto/create-survey.dto';
-import { UpdateSurveyDto } from '../dto/update-survey.dto';
-import { DeleteSurveyDto } from '../dto/delete-survey.dto';
+import { SurveyDto } from '../dto/create-survey.dto';
 import { SurveysService } from '../services/surveys.service';
 
 import {
@@ -33,8 +31,8 @@ export class SurveysController {
 
   // 설문지 생성
   @Post()
-  async createSurvey(@Body() createDto: CreateSurveyDto) {
-    const create = await this.surveysService.createSurvey(createDto);
+  async createSurvey(@Body() surveyDto: SurveyDto) {
+    const create = await this.surveysService.createSurvey(surveyDto);
     return create;
   }
 
@@ -42,19 +40,16 @@ export class SurveysController {
   @Patch('/:surveyId')
   async updateSurvey(
     @Param('surveyId') surveyId: number,
-    @Body() updateDto: UpdateSurveyDto,
+    @Body() surveyDto: SurveyDto,
   ) {
-    const update = await this.surveysService.updateSurvey(updateDto, surveyId);
+    const update = await this.surveysService.updateSurvey(surveyDto, surveyId);
     return update;
   }
 
   // 설문지 삭제
   @Delete('/:surveyId')
-  async deleteSurvey(
-    @Param('surveyId') surveyId: number,
-    @Body() deleteDto: DeleteSurveyDto,
-  ) {
-    const remove = this.surveysService.deleteSurvey(deleteDto, surveyId);
+  async deleteSurvey(@Param('surveyId') surveyId: number) {
+    const remove = this.surveysService.deleteSurvey(surveyId);
     return remove;
   }
 }

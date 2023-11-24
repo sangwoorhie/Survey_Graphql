@@ -18,6 +18,18 @@ export class Options {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({
+    type: 'int',
+    nullable: false,
+  })
+  surveyId: number;
+
+  @Column({
+    type: 'int',
+    nullable: false,
+  })
+  questionId: number;
+
   @Column()
   number: number;
 
