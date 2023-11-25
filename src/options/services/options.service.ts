@@ -5,37 +5,25 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { OptionsRepository } from '../repositories/options.repository';
-import { SurveysRepository } from 'src/surveys/repositories/surveys.repository';
-import { QuestionsRepository } from 'src/questions/repositories/questions.repository';
-import { OptionDto } from '../dto/option.dto';
+import { CreateOptionDto } from '../dto/create-option.dto';
+import { Repository } from 'typeorm';
+import { Options } from '../entities/options.entity';
+import { EntityWithId } from 'src/survey.type';
+import { UpdateOptionDto } from '../dto/update-option.dto';
 
 @Injectable()
 export class OptionsService {
   private readonly logger = new Logger(OptionsService.name);
-  constructor(
-    private readonly optionsRepository: OptionsRepository,
-    private readonly surveysRepository: SurveysRepository,
-    private readonly questionsRepository: QuestionsRepository,
-  ) {}
+  constructor(private readonly optionsRepository: Repository<Options>) {}
 
-  // 선택지 목록조회
-  async getOptions(surveyId: number, questionId: number) {
+  // 선택지 목록조회 (getAllOptions)
+  async getAllOptions(): Promise<Options[]> {
     try {
-      const survey = await this.surveysRepository.getSurveyById(surveyId);
-      if (!survey) {
-        throw new NotFoundException('해당 설문지를 찾을 수 없습니다.');
-      }
-      const question =
-        await this.questionsRepository.getQuestionById(questionId);
-      if (!question) {
-        throw new NotFoundException('해당 문항을 찾을 수 없습니다.');
-      }
-      const options = await this.optionsRepository.getOptions(questionId);
+      const options = await this.optionsRepository.find({
+        select: ['id', 'optionNumber', 'content'],
+      });
       if (!options.length) {
-        throw new NotFoundException(
-          '해당 문항의 선택지가 아직 존재하지 않습니다.',
-        );
+        throw new NotFoundException('선택지가 아직 존재하지 않습니다.');
       }
       return options;
     } catch (error) {
@@ -46,23 +34,12 @@ export class OptionsService {
     }
   }
 
-  // 선택지 상세조회
-  async getOptionById(surveyId: number, questionId: number, optionId: number) {
+  // 단일 선택지 조회 (getSingleOption)
+  async getSingleOption(optionId: number): Promise<Options> {
     try {
-      const survey = await this.surveysRepository.getSurveyById(surveyId);
-      if (!survey) {
-        throw new NotFoundException('해당 설문지를 찾을 수 없습니다.');
-      }
-      const question =
-        await this.questionsRepository.getQuestionById(questionId);
-      if (!question) {
-        throw new NotFoundException('해당 문항을 찾을 수 없습니다.');
-      }
-      const option = await this.optionsRepository.getOptionById(optionId);
-      if (!option) {
-        throw new NotFoundException('해당 선택지를 찾을 수 없습니다.');
-      }
-      return option;
+      return await this.optionsRepository.findOneOrFail({
+        where: { id: optionId },
+      });
     } catch (error) {
       this.logger.error(
         `해당 선택지 조회 중 에러가 발생했습니다: ${error.message}`,
@@ -71,56 +48,44 @@ export class OptionsService {
     }
   }
 
-  // 선택지 생성
-  async createOption(
-    surveyId: number,
-    questionId: number,
-    optionDto: OptionDto,
-  ) {
+  // 답변 생성용 옵션번호 조회 // 해당 suerveyId, questionId일치 여부 확인해야함
+  async optionNumber(answerNumber: number): Promise<Options> {
     try {
-      const survey = await this.surveysRepository.getSurveyById(surveyId);
-      if (!survey) {
-        throw new NotFoundException('해당 설문지를 찾을 수 없습니다.');
-      }
-      const question =
-        await this.questionsRepository.getQuestionById(questionId);
-      if (!question) {
-        throw new NotFoundException('해당 문항을 찾을 수 없습니다.');
-      }
-      const { number, content, score } = optionDto;
-      if (!number || !content || !score) {
+      return await this.optionsRepository.findOne({
+        where: { optionNumber: answerNumber },
+      });
+    } catch (error) {
+      this.logger.error(
+        `해당 선택지 번호 조회 중 에러가 발생했습니다: ${error.message}`,
+      );
+      throw error;
+    }
+  }
+
+  // 선택지 생성 (createOption)
+  async createOption(createDto: CreateOptionDto): Promise<Options> {
+    try {
+      const { optionNumber, content, optionScore } = createDto;
+      if (!optionNumber || !content || !optionScore) {
         throw new BadRequestException(
           '미기입된 항목이 있습니다. 모두 작성해주세요. 선택지 번호 및 점수는 각각 1부터 5까지 생성 가능합니다.',
         );
       }
-      const IsExistOption = await this.optionsRepository.existOption(
-        surveyId,
-        questionId,
-        number,
-        content,
-        score,
-      );
-      if (IsExistOption.IsExistNumber) {
+      const existOption = await this.existOption(createDto);
+      if (existOption.existNumber) {
         throw new ConflictException(
           '중복된 번호의 다른 선택지가 이미 존재합니다. 다른 번호로 작성해주세요.',
         );
-      } else if (IsExistOption.IsExistContent) {
+      } else if (existOption.existContent) {
         throw new ConflictException(
           '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 작성해주세요.',
         );
-      } else if (IsExistOption.IsExistScore) {
+      } else if (existOption.existScore) {
         throw new ConflictException(
           '중복된 점수의 다른 선택지가 이미 존재합니다. 다른 점수로 작성해주세요.',
         );
       }
-      const create = await this.optionsRepository.createOption(
-        surveyId,
-        questionId,
-        number,
-        content,
-        score,
-      );
-      return create;
+      return await this.optionsRepository.save(new Options(createDto));
     } catch (error) {
       this.logger.error(
         `해당 선택지 생성 중 에러가 발생했습니다: ${error.message}`,
@@ -129,59 +94,43 @@ export class OptionsService {
     }
   }
 
-  // 선택지 수정
+  // 선택지 수정 (updateOption)
   async updateOption(
-    surveyId: number,
-    questionId: number,
     optionId: number,
-    optionDto: OptionDto,
-  ) {
+    updateDto: UpdateOptionDto,
+  ): Promise<Options> {
     try {
-      const survey = await this.surveysRepository.getSurveyById(surveyId);
-      if (!survey) {
-        throw new NotFoundException('해당 설문지를 찾을 수 없습니다.');
-      }
-      const question =
-        await this.questionsRepository.getQuestionById(questionId);
-      if (!question) {
-        throw new NotFoundException('해당 문항을 찾을 수 없습니다.');
-      }
-      const option = await this.optionsRepository.getOptionById(optionId);
-      if (!option) {
-        throw new NotFoundException('해당 선택지를 찾을 수 없습니다.');
-      }
-      const { number, content, score } = optionDto;
-      if (!number || !content || !score) {
-        throw new BadRequestException(
-          '미기입된 항목이 있습니다. 모두 작성해주세요. 선택지 번호 및 점수는 각각 1부터 5까지 수정 가능합니다.',
-        );
-      }
-      const IsExistOption = await this.optionsRepository.existOption(
-        surveyId,
-        questionId,
-        number,
-        content,
-        score,
+      const option = await this.optionsRepository.findOneOrFail({
+        where: { id: optionId },
+      });
+      const update = await this.optionsRepository.save(
+        new Options(Object.assign(option, updateDto)),
       );
-      if (IsExistOption.IsExistNumber) {
+      // 중복검사
+      const existNumber = await this.optionsRepository.findOne({
+        where: { optionNumber: update.optionNumber },
+      });
+      if (existNumber) {
         throw new ConflictException(
-          '중복된 번호의 다른 선택지가 이미 존재합니다. 다른 번호로 작성해주세요.',
-        );
-      } else if (IsExistOption.IsExistContent) {
-        throw new ConflictException(
-          '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 작성해주세요.',
-        );
-      } else if (IsExistOption.IsExistScore) {
-        throw new ConflictException(
-          '중복된 점수의 다른 선택지가 이미 존재합니다. 다른 점수로 작성해주세요.',
+          '중복된 번호의 다른 선택지가 이미 존재합니다. 다른 번호로 수정해주세요.',
         );
       }
-      const update = await this.optionsRepository.updateOption(
-        optionId,
-        number,
-        content,
-        score,
-      );
+      const existContent = await this.optionsRepository.findOne({
+        where: { content: update.content },
+      });
+      if (existContent) {
+        throw new ConflictException(
+          '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 수정해주세요.',
+        );
+      }
+      const existScore = await this.optionsRepository.findOne({
+        where: { optionScore: update.optionScore },
+      });
+      if (existScore) {
+        throw new ConflictException(
+          '중복된 점수의 다른 선택지가 이미 존재합니다. 다른 점수로 수정해주세요.',
+        );
+      }
       return update;
     } catch (error) {
       this.logger.error(
@@ -191,29 +140,34 @@ export class OptionsService {
     }
   }
 
-  // 선택지 삭제
-  async deleteOption(surveyId: number, questionId: number, optionId: number) {
+  // 선택지 삭제 (deleteOption)
+  async deleteOption(optionId: number): Promise<EntityWithId> {
     try {
-      const survey = await this.surveysRepository.getSurveyById(surveyId);
-      if (!survey) {
-        throw new NotFoundException('해당 설문지를 찾을 수 없습니다.');
-      }
-      const question =
-        await this.questionsRepository.getQuestionById(questionId);
-      if (!question) {
-        throw new NotFoundException('해당 문항을 찾을 수 없습니다.');
-      }
-      const option = await this.optionsRepository.getOptionById(optionId);
-      if (!option) {
-        throw new NotFoundException('해당 선택지를 찾을 수 없습니다.');
-      }
-      const remove = await this.optionsRepository.deleteOption(optionId);
-      return remove;
+      const option = await this.optionsRepository.findOneOrFail({
+        where: { id: optionId },
+      });
+      await this.optionsRepository.remove(option);
+      return new EntityWithId(optionId);
     } catch (error) {
       this.logger.error(
         `해당 선택지 삭제 중 에러가 발생했습니다: ${error.message}`,
       );
       throw error;
     }
+  }
+
+  // 선택지 중복검사
+  async existOption(createDto: CreateOptionDto) {
+    const { optionNumber, content, optionScore } = createDto;
+    const existNumber = await this.optionsRepository.findOne({
+      where: { optionNumber },
+    });
+    const existContent = await this.optionsRepository.findOne({
+      where: { content },
+    });
+    const existScore = await this.optionsRepository.findOne({
+      where: { optionScore },
+    });
+    return { existNumber, existContent, existScore };
   }
 }

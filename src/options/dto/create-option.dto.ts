@@ -1,3 +1,4 @@
+import { Field, InputType } from '@nestjs/graphql';
 import {
   IsNotEmpty,
   IsNumber,
@@ -8,22 +9,26 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class OptionDto {
+@InputType()
+export class CreateOptionDto {
+  @Field()
   @IsNotEmpty()
   @IsNumber()
   @Min(1)
   @Max(5)
-  readonly number: number;
+  readonly optionNumber: number;
 
+  @Field()
   @IsNotEmpty()
   @IsString()
   @MinLength(10)
   @MaxLength(50)
   readonly content: string;
 
+  @Field()
   @IsNotEmpty()
   @IsNumber()
   @Min(1)
   @Max(5)
-  readonly score: number;
+  readonly optionScore: number;
 }

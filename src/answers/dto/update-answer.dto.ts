@@ -1,9 +1,7 @@
-import { IsNotEmpty, IsNumber, Max, Min } from 'class-validator';
+import { PartialType, InputType, OmitType } from '@nestjs/graphql';
+import { CreateAnswerDto } from './create-answer.dto';
 
-export class UpdateAnswerDto {
-  @IsNotEmpty()
-  @IsNumber()
-  @Min(1)
-  @Max(5)
-  readonly newNumber: number;
-}
+@InputType()
+export class UpdateAnswerDto extends PartialType(
+  OmitType(CreateAnswerDto, []),
+) {}

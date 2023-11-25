@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
-import { Options } from '../options.entity';
-import { OptionDto } from '../dto/option.dto';
+import { Options } from '../entities/options.entity';
 
 @Injectable()
 export class OptionsRepository extends Repository<Options> {
@@ -12,65 +11,60 @@ export class OptionsRepository extends Repository<Options> {
   async getOptions(questionId: number): Promise<Options[]> {
     const options = await this.find({
       where: { id: questionId },
-      order: { number: 'ASC' },
-      select: ['number', 'content', 'score'],
+      order: { optionNumber: 'ASC' },
+      select: ['optionNumber', 'content', 'optionScore'],
     });
     return options;
   }
 
-  // 선택지 상세조회
+  // 단일 선택지 조회
   async getOptionById(optionId: number): Promise<Options> {
     const option = await this.findOne({
       where: { id: optionId },
-      select: [
-        'surveyId',
-        'questionId',
-        'id',
-        'number',
-        'content',
-        'score',
-        'createdAt',
-        'updatedAt',
-      ],
+      select: ['id', 'optionNumber', 'content', 'createdAt', 'updatedAt'],
     });
     return option;
   }
 
-  // 선택지 생성
-  async createOption(
-    surveyId: number,
-    questionId: number,
-    number: number,
-    content: string,
-    score: number,
-  ): Promise<Options> {
-    const create = this.create({
-      surveyId,
-      questionId,
-      number,
-      content,
-      score,
+  // 선택지 번호 존재유무 조회
+  async IsExistNumber(questionId: number, optionNumber: number) {
+    const IsExistNumber = await this.findOne({
+      where: { optionNumber },
     });
-    await this.save(create);
-    return create;
+    return IsExistNumber;
   }
+
+  // 선택지 생성
+  // async createOption(
+  //   optionNumber: number,
+  //   content: string,
+  //   score: number,
+  // ): Promise<Options> {
+  //   const create = this.create({
+  //     optionNumber,
+  //     content,
+  //     score,
+  //   });
+  //   await this.save(create);
+  //   return create;
+  // }
 
   // 선택지 중복검사
   async existOption(
     surveyId: number,
     questionId: number,
-    number: number,
+    optionNumber: number,
     content: string,
-    score: number,
+    optionScore: number,
   ) {
     const IsExistNumber = await this.findOne({
-      where: { surveyId, questionId, number },
+      where: { optionNumber },
     });
     const IsExistContent = await this.findOne({
-      where: { surveyId, questionId, content },
+      where: { content },
     });
     const IsExistScore = await this.findOne({
-      where: { surveyId, questionId, score },
+      where: { optionScore },
     });
     return { IsExistNumber, IsExistContent, IsExistScore };
   }
@@ -78,11 +72,11 @@ export class OptionsRepository extends Repository<Options> {
   // 선택지 수정
   async updateOption(
     optionId: number,
-    number: number,
+    optionNumber: number,
     content: string,
-    score: number,
+    optionScore: number,
   ): Promise<Options> {
-    await this.update({ id: optionId }, { number, content, score });
+    await this.update({ id: optionId }, { optionNumber, content, optionScore });
     const update = await this.findOne({ where: { id: optionId } });
     return update;
   }

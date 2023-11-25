@@ -1,3 +1,4 @@
+import { Field, InputType } from '@nestjs/graphql';
 import {
   IsNotEmpty,
   IsString,
@@ -8,13 +9,16 @@ import {
   Max,
 } from 'class-validator';
 
-export class QuestionDto {
+@InputType()
+export class CreateQuestionDto {
+  @Field()
   @IsNotEmpty()
   @IsNumber()
   @Min(1)
   @Max(5)
-  readonly number: number;
+  readonly questionNumber: number;
 
+  @Field()
   @IsNotEmpty()
   @IsString()
   @MinLength(10)

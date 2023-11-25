@@ -1,20 +1,24 @@
+import { OptionsService } from 'src/options/services/options.service';
 import { Module } from '@nestjs/common';
-import { AnswersController } from './controllers/answers.controller';
 import { AnswersService } from './services/answers.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Answers } from './answers.entity';
-import { AnswersRepository } from './repositories/answer.repository';
-import { SurveysRepository } from 'src/surveys/repositories/surveys.repository';
-import { QuestionsRepository } from 'src/questions/repositories/questions.repository';
+import { Answers } from './entities/answers.entity';
+import { OptionsRepository } from 'src/options/repositories/options.repository';
+import { AnswersResolver } from './resolvers/answers.resolver';
+import { Repository } from 'typeorm';
+import { QuestionsService } from 'src/questions/services/questions.service';
+import { Options } from 'src/options/entities/options.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Answers])],
-  controllers: [AnswersController],
+  imports: [TypeOrmModule.forFeature([Answers, Options])],
+  // controllers: [],
   providers: [
     AnswersService,
-    AnswersRepository,
-    SurveysRepository,
-    QuestionsRepository,
+    OptionsRepository,
+    AnswersResolver,
+    OptionsService,
+    QuestionsService,
+    Repository,
   ],
 })
 export class AnswersModule {}

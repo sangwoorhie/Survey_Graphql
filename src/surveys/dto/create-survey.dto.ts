@@ -1,12 +1,16 @@
+import { Field, InputType } from '@nestjs/graphql';
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 
-export class SurveyDto {
+@InputType()
+export class CreateSurveyDto {
+  @Field()
   @IsNotEmpty()
   @IsString()
-  @MinLength(10)
-  @MaxLength(50)
+  @MinLength(5)
+  @MaxLength(20)
   readonly title: string;
 
+  @Field()
   @IsNotEmpty()
   @IsString()
   @MinLength(20)

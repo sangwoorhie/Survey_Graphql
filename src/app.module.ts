@@ -9,10 +9,16 @@ import { SurveysModule } from './surveys/surveys.module';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
 @Module({
   imports: [
-    // GraphQLModule.forRoot({}),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: true,
+      // debug: true,
+      playground: true,
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
