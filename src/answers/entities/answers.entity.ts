@@ -15,10 +15,6 @@ import { Field, Int, ObjectType } from '@nestjs/graphql';
 @Entity({ schema: 'surveyproject', name: 'Answers' })
 @ObjectType()
 export class Answers {
-  constructor(partial?: Partial<Answers>) {
-    Object.assign(this, partial);
-  }
-
   @PrimaryGeneratedColumn()
   @Field(() => Int)
   id: number;

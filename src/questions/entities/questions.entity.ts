@@ -24,13 +24,14 @@ export class Questions {
   @Field(() => Int)
   id: number;
 
-  @Column({ type: 'int', nullable: false })
+  @Column({ type: 'int', nullable: true })
   @Field(() => Int)
   questionNumber: number;
 
   @Column({
     type: 'varchar',
-    nullable: false,
+    nullable: true,
+    unique: true,
   })
   @Field(() => String)
   content: string;

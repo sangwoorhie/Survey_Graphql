@@ -5,23 +5,19 @@ import {
   MaxLength,
   MinLength,
   IsNumber,
-  Min,
-  Max,
 } from 'class-validator';
 
 @InputType()
 export class CreateQuestionDto {
   @Field()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: '필수 항목입니다.' })
   @IsNumber()
-  @Min(1)
-  @Max(5)
   readonly questionNumber: number;
 
   @Field()
-  @IsNotEmpty()
-  @IsString()
-  @MinLength(10)
-  @MaxLength(50)
+  @IsNotEmpty({ message: '필수 항목입니다.' })
+  @IsString({ message: '문자열을 입력해주세요.' })
+  @MinLength(10, { message: '최소 10글자 이상이어야 합니다.' })
+  @MaxLength(50, { message: '최대 50글자까지 입력 가능합니다.' })
   readonly content: string;
 }

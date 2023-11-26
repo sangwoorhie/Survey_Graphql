@@ -10,6 +10,7 @@ import {
 import { Logger } from '@nestjs/common';
 import { CreateSurveyDto } from '../dto/create-survey.dto';
 import { UpdateSurveyDto } from '../dto/update-survey.dto';
+import { CompleteSurveyDto } from '../dto/complete-survey.dto';
 import { Surveys } from '../entities/surveys.entity';
 import { EntityWithId } from 'src/survey.type';
 import { Questions } from 'src/questions/entities/questions.entity';
@@ -19,7 +20,6 @@ import { SurveysService } from '../services/surveys.service';
 
 @Resolver(() => Surveys)
 export class SurveysResolver {
-  private readonly logger = new Logger(SurveysResolver.name);
   constructor(private readonly surveysService: SurveysService) {}
 
   // 설문지 목록조회 (getAllSurveys)
@@ -68,20 +68,31 @@ export class SurveysResolver {
     return new EntityWithId(id);
   }
 
-  // Survey - questions
-  @ResolveField('questions')
+  // 설문지 완료 (completeSurvey)
+  @Mutation(() => Surveys, { name: 'completeSurvey' })
+  public async completeSurvey(
+    @Args('surveyId', { type: () => Int }) id: number,
+    @Args('completeDto', { type: () => CompleteSurveyDto })
+    completeDto: CompleteSurveyDto,
+  ) {
+    return await this.surveysService.completeSurvey(id, completeDto);
+  }
+
+  // relations
+  // Survey - questions = 1 : N
+  @ResolveField('questions', () => [Questions])
   public async questions(@Parent() survey: Surveys): Promise<Questions[]> {
     return await survey.questions;
   }
 
-  // Survey - options
-  @ResolveField('options')
+  // Survey - options = 1 : M
+  @ResolveField('options', () => [Options])
   public async options(@Parent() survey: Surveys): Promise<Options[]> {
     return await survey.options;
   }
 
-  // Survey - answers
-  @ResolveField('answers')
+  // Survey - answers = 1 : N
+  @ResolveField('answers', () => [Answers])
   public async answers(@Parent() survey: Surveys): Promise<Answers[]> {
     return await survey.answers;
   }

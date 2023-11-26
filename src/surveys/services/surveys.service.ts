@@ -5,16 +5,24 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { CreateSurveyDto } from '../dto/create-survey.dto';
+import { UpdateSurveyDto } from '../dto/update-survey.dto';
+import { CompleteSurveyDto } from '../dto/complete-survey.dto';
 import { Repository } from 'typeorm';
 import { Surveys } from '../entities/surveys.entity';
-import { UpdateSurveyDto } from '../dto/update-survey.dto';
 import { EntityWithId } from 'src/survey.type';
+import { Questions } from 'src/questions/entities/questions.entity';
 
 @Injectable()
 export class SurveysService {
   private readonly logger = new Logger(SurveysService.name);
-  constructor(private readonly surveysRepository: Repository<Surveys>) {}
+  constructor(
+    @InjectRepository(Surveys)
+    private readonly surveysRepository: Repository<Surveys>,
+    @InjectRepository(Questions)
+    private readonly questionsRepository: Repository<Questions>,
+  ) {}
 
   // 설문지 목록조회 (getAllSurveys)
   async getAllSurveys(): Promise<Surveys[]> {
@@ -37,10 +45,14 @@ export class SurveysService {
   // 단일 설문지 조회 (getSingleSurvey)
   async getSingleSurvey(surveyId: number): Promise<Surveys> {
     try {
-      return await this.surveysRepository.findOneOrFail({
+      const survey = await this.surveysRepository.findOneOrFail({
         where: { id: surveyId },
+        relations: ['questions'],
       });
+
+      const allQuestions = await this.questionsRepository;
     } catch (error) {
+      return;
       this.logger.error(
         `해당 설문지 조회 중 에러가 발생했습니다: ${error.message}`,
       );
@@ -71,22 +83,6 @@ export class SurveysService {
   // 설문지 생성 (createSurvey)
   async createSurvey(createDto: CreateSurveyDto): Promise<Surveys> {
     try {
-      const { title, description } = createDto;
-      if (!title || !description) {
-        throw new BadRequestException(
-          '미기입된 항목이 있습니다. 모두 작성해주세요.',
-        );
-      }
-      const existSurvey = await this.existSurvey(createDto);
-      if (existSurvey.existTitle) {
-        throw new ConflictException(
-          '중복된 제목의 다른 설문지가 이미 존재합니다. 다른 제목으로 작성해주세요.',
-        );
-      } else if (existSurvey.existDescription) {
-        throw new ConflictException(
-          '중복된 내용의 다른 설문지가 이미 존재합니다. 다른 내용으로 작성해주세요.',
-        );
-      }
       return await this.surveysRepository.save(new Surveys(createDto));
     } catch (error) {
       this.logger.error(
@@ -108,23 +104,6 @@ export class SurveysService {
       const update = await this.surveysRepository.save(
         new Surveys(Object.assign(survey, updateDto)),
       );
-      // 중복검사
-      const existTitle = await this.surveysRepository.findOne({
-        where: { title: update.title },
-      });
-      if (existTitle) {
-        throw new ConflictException(
-          '중복된 제목의 다른 설문지가 이미 존재합니다. 다른 제목으로 수정해주세요.',
-        );
-      }
-      const existDescription = await this.surveysRepository.findOne({
-        where: { description: update.description },
-      });
-      if (existDescription) {
-        throw new ConflictException(
-          '중복된 내용의 다른 설문지가 이미 존재합니다. 다른 내용으로 수정해주세요.',
-        );
-      }
       return update;
     } catch (error) {
       this.logger.error(
@@ -150,15 +129,35 @@ export class SurveysService {
     }
   }
 
-  // 설문지 중복검사
-  async existSurvey(surveyDto: CreateSurveyDto) {
-    const { title, description } = surveyDto;
-    const existTitle = await this.surveysRepository.findOne({
-      where: { title },
-    });
-    const existDescription = await this.surveysRepository.findOne({
-      where: { description },
-    });
-    return { existTitle, existDescription };
+  // 설문지 완료 (completeSurvey)
+  async completeSurvey(
+    surveyId: number,
+    completeDto: CompleteSurveyDto,
+  ): Promise<Surveys> {
+    try {
+      const survey = await this.surveysRepository.findOneOrFail({
+        where: { id: surveyId },
+      });
+      if (survey.isDone === true) {
+        throw new BadRequestException('이미 완료된 설문지입니다.');
+      }
+      const { isDone } = completeDto;
+      if (isDone === false || isDone !== true) {
+        throw new BadRequestException(
+          '설문지 완료 여부를 기입해주세요. 설문지가 완료되었을 경우, `true`를 작성해주세요.',
+        );
+      }
+
+      // survey의 모든 question들이 isAnswered === true인지 확인, 아닐시 if문처리 필요
+      if (isDone === true) {
+        await this.surveysRepository.update({ id: surveyId }, { isDone: true });
+      }
+      return await this.surveysRepository.findOne({ where: { id: surveyId } });
+    } catch (error) {
+      this.logger.error(
+        `해당 설문지 완료 중 에러가 발생했습니다: ${error.message}`,
+      );
+      throw error;
+    }
   }
 }

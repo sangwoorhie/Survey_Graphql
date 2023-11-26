@@ -25,6 +25,7 @@ export class Surveys {
   @Column({
     type: 'varchar',
     nullable: false,
+    unique: true,
   })
   @Field(() => String)
   title: string;
@@ -32,6 +33,7 @@ export class Surveys {
   @Column({
     type: 'varchar',
     nullable: false,
+    unique: true,
   })
   @Field(() => String)
   description: string;
@@ -39,20 +41,21 @@ export class Surveys {
   @Column({
     type: 'boolean',
     default: false,
+    nullable: true,
   })
-  @Field(() => Boolean, { defaultValue: false })
+  @Field(() => Boolean, { defaultValue: false, nullable: true })
   isDone: boolean;
 
   @Column({ default: 0 })
-  @Field(() => Int, { defaultValue: 0 })
+  @Field(() => Int, { defaultValue: 0, nullable: true })
   totalScore: number;
 
   @CreateDateColumn({ name: 'createdAt', type: 'timestamp' })
-  @Field(() => Date)
+  @Field(() => Date, { nullable: true })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updatedAt', type: 'timestamp' })
-  @Field(() => Date)
+  @Field(() => Date, { nullable: true })
   updatedAt: Date;
 
   // 관계설정

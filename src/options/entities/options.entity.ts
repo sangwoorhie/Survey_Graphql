@@ -29,6 +29,7 @@ export class Options {
   @Column({
     type: 'varchar',
     nullable: false,
+    unique: true,
   })
   @Field(() => String)
   content: string;

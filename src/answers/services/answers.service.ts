@@ -14,19 +14,33 @@ import { Options } from 'src/options/entities/options.entity';
 import { OptionsService } from 'src/options/services/options.service';
 import { QuestionsService } from 'src/questions/services/questions.service';
 import { UpdateAnswerDto } from '../dto/update-answer.dto';
+import { Surveys } from 'src/surveys/entities/surveys.entity';
 
 @Injectable()
 export class AnswersService {
   private readonly logger = new Logger(AnswersService.name);
   constructor(
+    @InjectRepository(Answers)
     private readonly answersRepository: Repository<Answers>,
+    @InjectRepository(Surveys)
+    private readonly surveysRepository: Repository<Surveys>,
+    @InjectRepository(Questions)
+    private readonly questionsRepository: Repository<Questions>,
     private readonly optionsService: OptionsService,
-    private readonly questionsService: QuestionsService,
   ) {}
 
   // 답변 목록조회 (getAllAnswers)
-  async getAllAnswers(): Promise<Answers[]> {
+  async getAllAnswers(
+    surveyId: number,
+    questionId: number,
+  ): Promise<Answers[]> {
     try {
+      await this.surveysRepository.findOneOrFail({
+        where: { id: surveyId },
+      });
+      await this.questionsRepository.findOneOrFail({
+        where: { id: questionId },
+      });
       const answers = await this.answersRepository.find({
         select: ['id', 'answerNumber'],
       });
@@ -45,8 +59,18 @@ export class AnswersService {
   }
 
   // 단일 답변조회 (getSingleAnswer)
-  async getSingleAnswer(answerId: number): Promise<Answers> {
+  async getSingleAnswer(
+    surveyId: number,
+    questionId: number,
+    answerId: number,
+  ): Promise<Answers> {
     try {
+      await this.surveysRepository.findOneOrFail({
+        where: { id: surveyId },
+      });
+      await this.questionsRepository.findOneOrFail({
+        where: { id: questionId },
+      });
       return await this.answersRepository.findOneOrFail({
         where: { id: answerId },
       });
@@ -59,25 +83,33 @@ export class AnswersService {
   }
 
   // 답변 생성 (createAnswer)
-  async createAnswer(createDto: CreateAnswerDto): Promise<Answers> {
+  async createAnswer(
+    surveyId: number,
+    questionId: number,
+    createDto: CreateAnswerDto,
+  ): Promise<Answers> {
     try {
+      await this.surveysRepository.findOneOrFail({
+        where: { id: surveyId },
+      });
+      const question = await this.questionsRepository.findOneOrFail({
+        where: { id: questionId },
+      });
+      if ((question.isAnswered = true)) {
+        throw new BadRequestException('이미 답변이 완료된 문항입니다.');
+      }
       const { answerNumber } = createDto;
-      if (!answerNumber) {
-        throw new BadRequestException(
-          '답안으로 선택할 선택지의 번호를 작성해주세요.',
-        );
-      }
-      const optionNumber = await this.optionsService.optionNumber(answerNumber);
-      if (!optionNumber) {
-        throw new NotFoundException('해당 번호의 선택지가 존재하지 않습니다.');
-      } // 해당 suerveyId, questionId일치 여부 확인해야함(안되어있음)
+      const option = await this.optionsService.optionNumber(answerNumber);
 
-      const answer = await this.answersRepository.save(new Answers(createDto));
-      if (answer) {
+      const create = this.answersRepository.create(createDto);
+      const answer = await this.answersRepository.save(create);
+
+      // 답변된 문항 상태 true로 변경 및 선택된 옵션으로 점수부여
+      if (option && answer) {
+        question.isAnswered = true;
+        question.questionScore = option.optionScore;
+        await this.questionsRepository.save(question);
       }
-      // (답변확인처리) 조건문에 해당 question의 isAnswered를 true로 변경시키는 로직 필요함
-      // isAnswered가 이미 true일 경우, 이미 답변된 문항이라고 에러메시지 반환
-      // (점수생성) 해당 question의 questionScore를 선택된 option의 optionScore로 일치시켜서 반환하는 로직 필요함
       return answer;
     } catch (error) {
       this.logger.error(
@@ -89,20 +121,38 @@ export class AnswersService {
 
   // 답변 수정 (updateAnswer)
   async updateAnswer(
+    surveyId: number,
+    questionId: number,
     answerId: number,
     updateDto: UpdateAnswerDto,
   ): Promise<Answers> {
     try {
-      const answer = await this.answersRepository.findOneOrFail({
+      await this.surveysRepository.findOneOrFail({
+        where: { id: surveyId },
+      });
+      const question = await this.questionsRepository.findOneOrFail({
+        where: { id: questionId },
+      });
+      if ((question.isAnswered = false)) {
+        throw new BadRequestException('아직 답변이 완료되지 않은 문항입니다.');
+      }
+      await this.answersRepository.findOneOrFail({
         where: { id: answerId },
       });
-      const update = await this.answersRepository.save(
-        new Answers(Object.assign(answer, updateDto)),
+      const { answerNumber } = updateDto;
+
+      const option = await this.optionsService.optionNumber(answerNumber);
+      const update = await this.answersRepository.update(
+        { id: answerId },
+        { answerNumber: answerNumber },
       );
-      return update;
-      // 기존에 isAnswered=true 된 것만 변경처리 가능함.
-      // (답변확인처리) 해당 question의 isAnswered=true로 다시 한번 써주고,
-      // (점수생성) questionScore를 선택된 option의 optionScore로 일치 변경시켜서 반환하는 로직 필요함
+      // 답변된 문항 상태 true로 변경 및 선택된 옵션으로 점수부여
+      if (option && update) {
+        question.isAnswered = true;
+        question.questionScore = option.optionScore;
+        await this.questionsRepository.save(question);
+      }
+      return await this.answersRepository.findOne({ where: { id: answerId } });
     } catch (error) {
       this.logger.error(
         `해당 답변 수정 중 에러가 발생했습니다: ${error.message}`,
@@ -112,14 +162,28 @@ export class AnswersService {
   }
 
   // 답변 삭제 (deleteAnswer)
-  async deleteAnswer(answerId: number): Promise<EntityWithId> {
+  async deleteAnswer(
+    surveyId: number,
+    questionId: number,
+    answerId: number,
+  ): Promise<EntityWithId> {
     try {
+      await this.surveysRepository.findOneOrFail({
+        where: { id: surveyId },
+      });
+      const question = await this.questionsRepository.findOneOrFail({
+        where: { id: questionId },
+      });
       const answer = await this.answersRepository.findOneOrFail({
         where: { id: answerId },
       });
-      await this.answersRepository.remove(answer);
+      const remove = await this.answersRepository.remove(answer);
+      if (remove) {
+        question.isAnswered = false;
+        question.questionScore = 0;
+        await this.questionsRepository.save(question);
+      }
       return new EntityWithId(answerId);
-      // 해당 question의 isAnswered를 false로 하고, score를 0으로 반환하는 로직 필요
     } catch (error) {
       this.logger.error(
         `해당 답변 삭제 중 에러가 발생했습니다: ${error.message}`,
