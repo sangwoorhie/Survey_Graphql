@@ -26,8 +26,13 @@ $ npm run start:dev
 $ npm run start:prod
 
 ```
-- npm run start:dev로 서버를 실행시킨 다음에, http://localhost:4000/graphql 에 접속하여 Playground에서 테스트. (포트번호 4000)
-- API별 각각의 CRUD 자세한 실행 방법은 포트폴리오 ([Portfolio](https://lemon-coin-768.notion.site/Survey-Project-0811413ea7ba4b12a839b610040079fd?pvs=4)) 참고<br>
+![환경변수](https://github.com/sangwoorhie/Survey_Project/assets/131964697/59e6c43c-8a6e-47b9-a688-70a54aafe52b)
+-
+
+- 환경변수 셋팅 경로 : Survey/src/configs/typeorm.config.ts
+- npm install dotenv 로 라이브러리 설치 후, 최상단 디렉토리(Survey)에 .env파일을 생성하여 PostgreSql 데이터베이스 정보를 기입합니다.
+- 환경변수 셋팅 후, npm run start:dev로 서버를 실행시킨 다음에, http://localhost:4000/graphql 에 접속하여 Playground에서 테스트하시면 됩니다. (포트번호 4000)
+- API별 각각의 CRUD 자세한 실행 방법은 포트폴리오 ([Portfolio](https://lemon-coin-768.notion.site/Survey-Project-0811413ea7ba4b12a839b610040079fd?pvs=4)) 참고하시면 됩니다.<br>
  <br>
  <br>
 
