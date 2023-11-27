@@ -81,17 +81,13 @@ export class OptionsService {
     answerNumber: number,
   ): Promise<Options> {
     try {
-      const matchingNumber = await this.optionsRepository.findOne({
+      return await this.optionsRepository.findOne({
         where: {
           survey: { id: surveyId },
           question: { id: questionId },
           optionNumber: answerNumber,
         },
       });
-      if (!matchingNumber) {
-        throw new NotFoundException('해당 번호의 선택지가 존재하지 않습니다.');
-      }
-      return matchingNumber;
     } catch (error) {
       this.logger.error(
         `답변 생성을 위한 선택지번호 조회 중 에러가 발생했습니다: ${error.message}`,
@@ -107,18 +103,18 @@ export class OptionsService {
     createDto: CreateOptionDto,
   ): Promise<Options> {
     try {
-      await this.questionsRepository.findOneOrFail({
-        where: {
-          survey: { id: surveyId },
-          id: questionId,
-        },
-      });
+      // await this.questionsRepository.findOneOrFail({
+      //   where: {
+      //     survey: { id: surveyId },
+      //     id: questionId,
+      //   },
+      // });
 
       // 선택지 중복검사
       await this.existOption(surveyId, questionId, createDto);
 
       // 선택지 순서대로 (Sequential Numbering)
-      await this.SequentialNumbering(surveyId, questionId, createDto);
+      // await this.SequentialNumbering(surveyId, questionId, createDto);
 
       return await this.optionsRepository.save(new Options(createDto));
     } catch (error) {
@@ -129,7 +125,7 @@ export class OptionsService {
     }
   }
 
-  // 선택지 수정 (updateOption) -> 내용만 수정 가능
+  // 선택지 수정 (updateOption)
   async updateOption(
     surveyId: number,
     questionId: number,
@@ -137,7 +133,7 @@ export class OptionsService {
     updateDto: UpdateOptionDto,
   ): Promise<Options> {
     try {
-      const option = await this.optionsRepository.findOne({
+      const option = await this.optionsRepository.findOneOrFail({
         where: {
           survey: { id: surveyId },
           question: { id: questionId },
@@ -145,21 +141,21 @@ export class OptionsService {
         },
       });
       // 중복검사
-      const { content } = updateDto;
-      const existContent = await this.optionsRepository.findOne({
-        where: {
-          survey: { id: surveyId },
-          question: { id: questionId },
-          content: content,
-        },
-      });
-      if (existContent) {
-        throw new ConflictException(
-          '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 수정해주세요.',
-        );
-      }
+      // const { content } = updateDto;
+      // const existContent = await this.optionsRepository.findOne({
+      //   where: {
+      //     survey: { id: surveyId },
+      //     question: { id: questionId },
+      //     content: content,
+      //   },
+      // });
+      // if (existContent) {
+      //   throw new ConflictException(
+      //     '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 수정해주세요.',
+      //   );
+      // }
 
-      option.content = updateDto.content;
+      // option.content = updateDto.content;
       await this.optionsRepository.save(
         new Options(Object.assign(option, updateDto)),
       );
@@ -251,7 +247,7 @@ export class OptionsService {
     }
   }
 
-  // 선택지 순서대로 (Sequential Numbering)
+  // 선택지 순서대로 (Sequential Numbering) => 사용X, 추후 리팩토링 예정
   async SequentialNumbering(
     surveyId: number,
     questionId: number,

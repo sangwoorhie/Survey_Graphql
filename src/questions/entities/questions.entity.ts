@@ -27,6 +27,10 @@ export class Questions {
 
   @Column({ type: 'int', nullable: true })
   @Field(() => Int)
+  surveyId: number;
+
+  @Column({ type: 'int', nullable: true })
+  @Field(() => Int)
   questionNumber: number;
 
   @Column({

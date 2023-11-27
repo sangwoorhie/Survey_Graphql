@@ -53,7 +53,7 @@ export class OptionsResolver {
     );
   }
 
-  // 선택지 수정 (updateOption) -> 내용만 수정 가능
+  // 선택지 수정 (updateOption)
   @Mutation(() => Options, { name: 'updateOption' })
   public async updateOption(
     @Args('surveyId', { type: () => Int }) surveyId: number,

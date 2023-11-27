@@ -22,13 +22,21 @@ export class Options {
   @Field(() => Int)
   id: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
+  @Field(() => Int)
+  surveyId: number;
+
+  @Column({ type: 'int', nullable: true })
+  @Field(() => Int)
+  questionId: number;
+
+  @Column({ type: 'int', nullable: true })
   @Field(() => Int)
   optionNumber: number;
 
   @Column({
     type: 'varchar',
-    unique: true,
+    // unique: true,
   })
   @Field(() => String)
   content: string;

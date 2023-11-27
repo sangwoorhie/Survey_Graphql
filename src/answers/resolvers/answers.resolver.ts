@@ -8,7 +8,6 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { Answers } from '../entities/answers.entity';
-import { Logger } from '@nestjs/common';
 import { AnswersService } from '../services/answers.service';
 import { CreateAnswerDto } from '../dto/create-answer.dto';
 import { UpdateAnswerDto } from '../dto/update-answer.dto';
@@ -44,7 +43,7 @@ export class AnswersResolver {
   public async createAnswer(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,
-    @Args('createAnswer', { type: () => CreateAnswerDto })
+    @Args('createDto', { type: () => CreateAnswerDto })
     createDto: CreateAnswerDto,
   ) {
     return await this.answersService.createAnswer(

@@ -19,7 +19,15 @@ export class Answers {
   @Field(() => Int)
   id: number;
 
-  @Column({ type: 'int', nullable: false })
+  @Column({ type: 'int', nullable: true })
+  @Field(() => Int)
+  surveyId: number;
+
+  @Column({ type: 'int', nullable: true })
+  @Field(() => Int)
+  questionId: number;
+
+  @Column({ type: 'int', nullable: true })
   @Field(() => Int)
   answerNumber: number;
 
