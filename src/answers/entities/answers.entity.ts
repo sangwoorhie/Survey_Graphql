@@ -34,12 +34,13 @@ export class Answers {
   // 관계설정
   // Answers - Surveys : N : 1 관계
   @ManyToOne(() => Surveys, (survey) => survey.answers)
+  @JoinColumn({ name: 'surveyId' })
   @Field(() => Surveys, { nullable: true })
   survey: Promise<Surveys>;
 
   // Answers - Questions : 1 : 1 관계
   @OneToOne(() => Questions, (question) => question.answer)
-  @JoinColumn()
+  @JoinColumn({ name: 'questionId' })
   @Field(() => [Questions], { nullable: false })
   question: Questions;
 }

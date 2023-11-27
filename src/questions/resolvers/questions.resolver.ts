@@ -15,6 +15,7 @@ import { UpdateQuestionDto } from '../dto/update-question.dto';
 import { Options } from 'src/options/entities/options.entity';
 import { QuestionsService } from './../services/questions.service';
 import { Surveys } from 'src/surveys/entities/surveys.entity';
+import { Answers } from 'src/answers/entities/answers.entity';
 
 @Resolver(() => Questions)
 export class QuestionsResolver {
@@ -82,8 +83,8 @@ export class QuestionsResolver {
   }
 
   // Question - answer = 1 : 1
-  // @ResolveField('answer')
-  // public async answer(@Parent() question: Questions): Promise<Answers> {
-  //   return await question.answer;
-  // }
+  @ResolveField('answer')
+  public async answer(@Parent() question: Questions): Promise<Answers> {
+    return await question.answer;
+  }
 }

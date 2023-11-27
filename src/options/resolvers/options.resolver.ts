@@ -8,7 +8,6 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { Options } from '../entities/options.entity';
-import { Logger } from '@nestjs/common';
 import { OptionsService } from '../services/options.service';
 import { CreateOptionDto } from '../dto/create-option.dto';
 import { UpdateOptionDto } from '../dto/update-option.dto';

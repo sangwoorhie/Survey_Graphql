@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -14,27 +15,22 @@ import { Field, Int, ObjectType } from '@nestjs/graphql';
 @Entity({ schema: 'surveyproject', name: 'Options' })
 @ObjectType()
 export class Options {
-  constructor(partial?: Partial<Options>) {
-    Object.assign(this, partial);
-  }
-
   @PrimaryGeneratedColumn()
   @Field(() => Int)
   id: number;
 
-  @Column({ type: 'int', nullable: false })
+  @Column({ type: 'int' })
   @Field(() => Int)
   optionNumber: number;
 
   @Column({
     type: 'varchar',
-    nullable: false,
     unique: true,
   })
   @Field(() => String)
   content: string;
 
-  @Column({ type: 'int', nullable: false })
+  @Column({ type: 'int' })
   @Field(() => Int)
   optionScore: number;
 
@@ -50,10 +46,12 @@ export class Options {
   // Options - Survey : N : 1 관계
   @ManyToOne(() => Surveys, (survey) => survey.options)
   @Field(() => Surveys, { nullable: true })
-  survey: Promise<Surveys>; // Lazy Relations
+  @JoinColumn({ name: 'surveyId' })
+  survey: Promise<Surveys>;
 
   // Options - Questions : N : 1 관계
   @ManyToOne(() => Questions, (question) => question.options)
   @Field(() => Questions, { nullable: true })
-  question: Promise<Questions>; // Lazy Relations
+  @JoinColumn({ name: 'questionId' })
+  question: Promise<Questions>;
 }

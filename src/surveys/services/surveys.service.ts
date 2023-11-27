@@ -47,12 +47,24 @@ export class SurveysService {
     try {
       const survey = await this.surveysRepository.findOneOrFail({
         where: { id: surveyId },
+        select: ['id', 'title', 'description', 'isDone', 'totalScore'],
         relations: ['questions'],
       });
 
-      const allQuestions = await this.questionsRepository;
+      const allQuestions = await this.questionsRepository.find({
+        where: { survey: { id: surveyId } },
+      });
+
+      // 각 문항의 합이 설문지의 총합으로 함.
+      let totalQuestionScore = 0;
+      allQuestions.forEach((question) => {
+        totalQuestionScore += question.questionScore;
+      });
+      survey.totalScore = totalQuestionScore;
+      await this.surveysRepository.save(survey);
+
+      return survey;
     } catch (error) {
-      return;
       this.logger.error(
         `해당 설문지 조회 중 에러가 발생했습니다: ${error.message}`,
       );
@@ -144,14 +156,31 @@ export class SurveysService {
       const { isDone } = completeDto;
       if (isDone === false || isDone !== true) {
         throw new BadRequestException(
-          '설문지 완료 여부를 기입해주세요. 설문지가 완료되었을 경우, `true`를 작성해주세요.',
+          `설문지 완료 여부를 기입해주세요. 설문지가 완료되었을 경우, "true"를 작성해주세요.`,
         );
       }
 
-      // survey의 모든 question들이 isAnswered === true인지 확인, 아닐시 if문처리 필요
-      if (isDone === true) {
+      const allQuestions = await this.questionsRepository.find({
+        where: { survey: { id: surveyId } },
+      });
+      if (!allQuestions.length) {
+        throw new NotFoundException('해당 설문지에 문항이 존재하지 않습니다.');
+      }
+
+      const unAnsweredQuestions = allQuestions.some(
+        (question) => question.isAnswered === false,
+      );
+      if (unAnsweredQuestions) {
+        throw new BadRequestException(
+          '아직 답변되지 않은 문항이 있습니다. 모두 답변해 주시고 설문지를 완료해주세요.',
+        );
+      }
+
+      const allAnswered = allQuestions.every((question) => question.isAnswered);
+      if (allAnswered && isDone === true) {
         await this.surveysRepository.update({ id: surveyId }, { isDone: true });
       }
+
       return await this.surveysRepository.findOne({ where: { id: surveyId } });
     } catch (error) {
       this.logger.error(

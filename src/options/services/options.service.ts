@@ -109,21 +109,23 @@ export class OptionsService {
         where: { id: questionId },
         select: ['id'],
       });
-      // const existOption = await this.existOption(createDto);
-      // if (existOption.existNumber) {
-      //   throw new ConflictException(
-      //     '중복된 번호의 다른 선택지가 이미 존재합니다. 다른 번호로 작성해주세요.',
-      //   );
-      // } else if (existOption.existContent) {
-      //   throw new ConflictException(
-      //     '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 작성해주세요.',
-      //   );
-      // } else if (existOption.existScore) {
-      //   throw new ConflictException(
-      //     '중복된 점수의 다른 선택지가 이미 존재합니다. 다른 점수로 작성해주세요.',
-      //   );
-      // }
-      return await this.optionsRepository.save(new Options(createDto));
+
+      // 선택지 중복검사
+      await this.existOption(surveyId, questionId, createDto);
+
+      // 선택지 순서대로 (Sequential Numbering)
+      const SequentialNumbering = await this.SequentialNumbering(
+        surveyId,
+        questionId,
+        createDto,
+      );
+
+      const { content, optionScore } = createDto;
+      const SequenceNumber = SequentialNumbering.optionNumber;
+      const NewDto = { SequenceNumber, content, optionScore };
+
+      const option = this.optionsRepository.create(NewDto);
+      return await this.optionsRepository.save(option);
     } catch (error) {
       this.logger.error(
         `해당 선택지 생성 중 에러가 발생했습니다: ${error.message}`,
@@ -151,35 +153,24 @@ export class OptionsService {
       const option = await this.optionsRepository.findOneOrFail({
         where: { id: optionId },
       });
-      const update = await this.optionsRepository.save(
-        new Options(Object.assign(option, updateDto)),
-      );
-      // 중복검사
-      // const existNumber = await this.optionsRepository.findOne({
-      //   where: { optionNumber: update.optionNumber },
-      // });
-      // if (existNumber) {
-      //   throw new ConflictException(
-      //     '중복된 번호의 다른 선택지가 이미 존재합니다. 다른 번호로 수정해주세요.',
-      //   );
-      // }
-      // const existContent = await this.optionsRepository.findOne({
-      //   where: { content: update.content },
-      // });
-      // if (existContent) {
-      //   throw new ConflictException(
-      //     '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 수정해주세요.',
-      //   );
-      // }
-      // const existScore = await this.optionsRepository.findOne({
-      //   where: { optionScore: update.optionScore },
-      // });
-      // if (existScore) {
-      //   throw new ConflictException(
-      //     '중복된 점수의 다른 선택지가 이미 존재합니다. 다른 점수로 수정해주세요.',
-      //   );
-      // }
-      return update;
+
+      const { content } = updateDto;
+      const existContent = await this.optionsRepository.findOne({
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+          content: content,
+        },
+      });
+      if (existContent) {
+        throw new ConflictException(
+          '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 수정해주세요.',
+        );
+      }
+
+      option.content = updateDto.content;
+      await this.optionsRepository.save(option);
+      return await this.optionsRepository.findOne({ where: { id: optionId } });
     } catch (error) {
       this.logger.error(
         `해당 선택지 수정 중 에러가 발생했습니다: ${error.message}`,
@@ -217,23 +208,124 @@ export class OptionsService {
   }
 
   // 선택지 중복검사
-  async existOption(createDto: CreateOptionDto) {
+  async existOption(
+    surveyId: number,
+    questionId: number,
+    createDto: CreateOptionDto,
+  ) {
     try {
       const { optionNumber, content, optionScore } = createDto;
+
       const existNumber = await this.optionsRepository.findOne({
-        where: { optionNumber },
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+          optionNumber: optionNumber,
+        },
       });
+      if (existNumber) {
+        throw new ConflictException(
+          '중복된 번호의 다른 선택지가 이미 존재합니다. 다른 번호로 작성해주세요.',
+        );
+      }
+
       const existContent = await this.optionsRepository.findOne({
-        where: { content },
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+          content: content,
+        },
       });
+      if (existContent) {
+        throw new ConflictException(
+          '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 작성해주세요.',
+        );
+      }
       const existScore = await this.optionsRepository.findOne({
-        where: { optionScore },
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+          optionScore: optionScore,
+        },
       });
-      return { existNumber, existContent, existScore };
+      if (existScore) {
+        throw new ConflictException(
+          '중복된 점수의 다른 선택지가 이미 존재합니다. 다른 점수로 작성해주세요.',
+        );
+      }
+
+      return createDto;
     } catch (error) {
       this.logger.error(
         `해당 선택지 생성을 위한 선택지 중복검사 중 에러가 발생했습니다: ${error.message}`,
       );
     }
+  }
+
+  // 선택지 순서대로 (Sequential Numbering)
+  async SequentialNumbering(
+    surveyId: number,
+    questionId: number,
+    createDto: CreateOptionDto,
+  ) {
+    const { optionNumber } = createDto;
+
+    const existQuestion = await this.optionsRepository.findOne({
+      where: {
+        survey: { id: surveyId },
+        question: { id: questionId },
+      },
+    });
+    // existOption.optionNumber이 없는데 optionNumber를 1이 아닌 숫자를 생성하는 경우
+    if (optionNumber !== 1 && !existQuestion.optionNumber) {
+      throw new BadRequestException(
+        '선택지 번호는 순서대로 생성 가능합니다. 1번을 생성해주세요.',
+      );
+      // existOption.optionNumber에 1번이 있는데, 2번이 없고, optionNumber가 1, 3, 4, 5 중 하나인 경우
+    }
+    if (
+      existQuestion &&
+      existQuestion.optionNumber === 1 &&
+      ![2].includes(optionNumber) &&
+      [1, 3, 4, 5].includes(optionNumber)
+    ) {
+      throw new BadRequestException(
+        '선택지 번호는 순서대로 생성 가능합니다. 2번을 생성해주세요.',
+      );
+    }
+    // existOption.optionNumber에 1, 2번이 있는데, 3번이 없고, optionNumber가 1, 2, 4, 5 중 하나인 경우
+    if (
+      existQuestion &&
+      [1, 2].includes(existQuestion.optionNumber) &&
+      ![3].includes(existQuestion.optionNumber) &&
+      [1, 2, 4, 5].includes(optionNumber)
+    ) {
+      throw new BadRequestException(
+        '선택지 번호는 순서대로 생성 가능합니다. 3번을 생성해주세요.',
+      );
+    }
+    // existOption.optionNumber에 1, 2, 3번이 있는데, 4번이 없고, optionNumber가 1, 2, 3, 5 중 하나인 경우
+    if (
+      existQuestion &&
+      [1, 2, 3].includes(existQuestion.optionNumber) &&
+      ![4].includes(existQuestion.optionNumber) &&
+      [1, 2, 3, 5].includes(optionNumber)
+    ) {
+      throw new BadRequestException(
+        '선택지 번호는 순서대로 생성 가능합니다. 4번을 생성해주세요.',
+      );
+    }
+    // existOption.optionNumber에 1, 2, 3, 4번이 있는데, 5번이 없고, optionNumber가 1, 2, 3, 4 중 하나인 경우
+    if (
+      existQuestion &&
+      [1, 2, 3, 4].includes(existQuestion.optionNumber) &&
+      ![5].includes(existQuestion.optionNumber) &&
+      [1, 2, 3, 4].includes(optionNumber)
+    ) {
+      throw new BadRequestException(
+        '선택지 번호는 순서대로 생성 가능합니다. 5번을 생성해주세요.',
+      );
+    }
+    return createDto;
   }
 }

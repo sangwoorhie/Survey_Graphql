@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   OneToOne,
@@ -58,6 +59,7 @@ export class Questions {
   // 관계설정
   // Question - Survey : N : 1 관계
   @ManyToOne(() => Surveys, (survey) => survey.questions)
+  @JoinColumn({ name: 'surveyId' })
   @Field(() => Surveys, { nullable: true })
   survey: Promise<Surveys>; // Lazy Relations
 
