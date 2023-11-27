@@ -14,10 +14,6 @@ import { Options } from 'src/options/entities/options.entity';
 @Entity({ schema: 'surveyproject', name: 'Surveys' })
 @ObjectType()
 export class Surveys {
-  constructor(partial?: Partial<Surveys>) {
-    Object.assign(this, partial);
-  }
-
   @PrimaryGeneratedColumn()
   @Field(() => Int)
   id: number;
@@ -25,7 +21,7 @@ export class Surveys {
   @Column({
     type: 'varchar',
     nullable: false,
-    unique: true,
+    // unique: true,
   })
   @Field(() => String)
   title: string;
@@ -33,7 +29,7 @@ export class Surveys {
   @Column({
     type: 'varchar',
     nullable: false,
-    unique: true,
+    // unique: true,
   })
   @Field(() => String)
   description: string;

@@ -36,7 +36,7 @@ export class Questions {
   @Column({
     type: 'varchar',
     nullable: true,
-    unique: true,
+    // unique: true,
   })
   @Field(() => String)
   content: string;

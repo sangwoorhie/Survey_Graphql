@@ -88,9 +88,6 @@ export class AnswersService {
           id: questionId,
         },
       });
-      // if ((question.isAnswered = true)) {
-      //   throw new BadRequestException('이미 답변이 완료된 문항입니다.');
-      // }
 
       // 답변 생성 및 수정용 답안번호와 동일한 선택지번호 조회
       const { answerNumber } = createDto;

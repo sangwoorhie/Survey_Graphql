@@ -95,7 +95,26 @@ export class SurveysService {
   // 설문지 생성 (createSurvey)
   async createSurvey(createDto: CreateSurveyDto): Promise<Surveys> {
     try {
-      return await this.surveysRepository.save(new Surveys(createDto));
+      const { title, description } = createDto;
+
+      const existTitle = await this.surveysRepository.findOne({
+        where: { title: title },
+      });
+      if (existTitle) {
+        throw new BadRequestException(
+          '중복된 제목의 설문지가 존재합니다. 다른 제목으로 작성해주세요.',
+        );
+      }
+      const existDescription = await this.surveysRepository.findOne({
+        where: { description: description },
+      });
+      if (existDescription) {
+        throw new BadRequestException(
+          '중복된 내용의 설문지가 존재합니다. 다른 내용으로 작성해주세요.',
+        );
+      }
+      const create = this.surveysRepository.create(createDto);
+      return await this.surveysRepository.save(create);
     } catch (error) {
       this.logger.error(
         `해당 설문지 생성 중 에러가 발생했습니다: ${error.message}`,
@@ -110,13 +129,33 @@ export class SurveysService {
     updateDto: UpdateSurveyDto,
   ): Promise<Surveys> {
     try {
-      const survey = await this.surveysRepository.findOneOrFail({
+      await this.surveysRepository.findOneOrFail({
         where: { id: surveyId },
       });
-      const update = await this.surveysRepository.save(
-        new Surveys(Object.assign(survey, updateDto)),
+
+      const { title, description } = updateDto;
+
+      const existTitle = await this.surveysRepository.findOne({
+        where: { title: title },
+      });
+      if (existTitle) {
+        throw new BadRequestException(
+          '중복된 제목의 설문지가 존재합니다. 다른 제목으로 수정해주세요.',
+        );
+      }
+      const existDescription = await this.surveysRepository.findOne({
+        where: { description: description },
+      });
+      if (existDescription) {
+        throw new BadRequestException(
+          '중복된 내용의 설문지가 존재합니다. 다른 내용으로 수정해주세요.',
+        );
+      }
+      await this.surveysRepository.update(
+        { id: surveyId },
+        { title, description },
       );
-      return update;
+      return await this.surveysRepository.findOne({ where: { id: surveyId } });
     } catch (error) {
       this.logger.error(
         `해당 설문지 수정 중 에러가 발생했습니다: ${error.message}`,

@@ -37,7 +37,6 @@ export class OptionsService {
           survey: { id: surveyId },
           question: { id: questionId },
         },
-        select: ['id', 'optionNumber', 'content'],
       });
       if (!options.length) {
         throw new NotFoundException('선택지가 아직 존재하지 않습니다.');
@@ -83,8 +82,8 @@ export class OptionsService {
     try {
       return await this.optionsRepository.findOne({
         where: {
-          survey: { id: surveyId },
-          question: { id: questionId },
+          surveyId,
+          questionId,
           optionNumber: answerNumber,
         },
       });
@@ -103,20 +102,20 @@ export class OptionsService {
     createDto: CreateOptionDto,
   ): Promise<Options> {
     try {
-      // await this.questionsRepository.findOneOrFail({
-      //   where: {
-      //     survey: { id: surveyId },
-      //     id: questionId,
-      //   },
-      // });
+      await this.questionsRepository.findOneOrFail({
+        where: {
+          survey: { id: surveyId },
+          id: questionId,
+        },
+      });
 
       // 선택지 중복검사
       await this.existOption(surveyId, questionId, createDto);
 
       // 선택지 순서대로 (Sequential Numbering)
       // await this.SequentialNumbering(surveyId, questionId, createDto);
-
-      return await this.optionsRepository.save(new Options(createDto));
+      const newOption = this.questionsRepository.create(createDto);
+      return await this.optionsRepository.save(newOption);
     } catch (error) {
       this.logger.error(
         `해당 선택지 생성 중 에러가 발생했습니다: ${error.message}`,
@@ -125,7 +124,7 @@ export class OptionsService {
     }
   }
 
-  // 선택지 수정 (updateOption)
+  // 선택지 수정 (updateOption) => 내용(content)만 수정 가능
   async updateOption(
     surveyId: number,
     questionId: number,
@@ -140,24 +139,25 @@ export class OptionsService {
           id: optionId,
         },
       });
-      // 중복검사
-      // const { content } = updateDto;
-      // const existContent = await this.optionsRepository.findOne({
-      //   where: {
-      //     survey: { id: surveyId },
-      //     question: { id: questionId },
-      //     content: content,
-      //   },
-      // });
-      // if (existContent) {
-      //   throw new ConflictException(
-      //     '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 수정해주세요.',
-      //   );
-      // }
 
-      // option.content = updateDto.content;
-      await this.optionsRepository.save(
-        new Options(Object.assign(option, updateDto)),
+      const { content } = updateDto;
+      const existContent = await this.optionsRepository.findOneOrFail({
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+          content: content,
+        },
+      });
+
+      if (existContent) {
+        throw new BadRequestException(
+          '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 작성해주세요.',
+        );
+      }
+
+      await this.optionsRepository.update(
+        { surveyId, questionId, id: optionId },
+        { content },
       );
       return await this.optionsRepository.findOne({
         where: { id: optionId },
