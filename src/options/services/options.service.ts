@@ -32,13 +32,11 @@ export class OptionsService {
     questionId: number,
   ): Promise<Options[]> {
     try {
-      await this.surveysRepository.findOneOrFail({
-        where: { id: surveyId },
-      });
-      await this.questionsRepository.findOneOrFail({
-        where: { id: questionId },
-      });
       const options = await this.optionsRepository.find({
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+        },
         select: ['id', 'optionNumber', 'content'],
       });
       if (!options.length) {
@@ -60,17 +58,13 @@ export class OptionsService {
     optionId: number,
   ): Promise<Options> {
     try {
-      await this.surveysRepository.findOneOrFail({
-        where: { id: surveyId },
-        select: ['id'],
-      });
-      await this.questionsRepository.findOneOrFail({
-        where: { id: questionId },
-        select: ['id'],
-      });
       return await this.optionsRepository.findOneOrFail({
-        where: { id: optionId },
-        select: ['id', 'optionNumber', 'content'],
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+          id: optionId,
+        },
+        select: ['id', 'optionNumber', 'content', 'optionScore'],
       });
     } catch (error) {
       this.logger.error(
@@ -80,12 +74,24 @@ export class OptionsService {
     }
   }
 
-  // 답변 생성용 옵션번호 조회
-  async optionNumber(answerNumber: number): Promise<Options> {
+  // 답변 생성 및 수정용 답안번호와 동일한 선택지번호 조회
+  async optionNumber(
+    surveyId: number,
+    questionId: number,
+    answerNumber: number,
+  ): Promise<Options> {
     try {
-      return await this.optionsRepository.findOneOrFail({
-        where: { optionNumber: answerNumber },
+      const matchingNumber = await this.optionsRepository.findOne({
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+          optionNumber: answerNumber,
+        },
       });
+      if (!matchingNumber) {
+        throw new NotFoundException('해당 번호의 선택지가 존재하지 않습니다.');
+      }
+      return matchingNumber;
     } catch (error) {
       this.logger.error(
         `답변 생성을 위한 선택지번호 조회 중 에러가 발생했습니다: ${error.message}`,
@@ -101,31 +107,20 @@ export class OptionsService {
     createDto: CreateOptionDto,
   ): Promise<Options> {
     try {
-      await this.surveysRepository.findOneOrFail({
-        where: { id: surveyId },
-        select: ['id'],
-      });
       await this.questionsRepository.findOneOrFail({
-        where: { id: questionId },
-        select: ['id'],
+        where: {
+          survey: { id: surveyId },
+          id: questionId,
+        },
       });
 
       // 선택지 중복검사
       await this.existOption(surveyId, questionId, createDto);
 
       // 선택지 순서대로 (Sequential Numbering)
-      const SequentialNumbering = await this.SequentialNumbering(
-        surveyId,
-        questionId,
-        createDto,
-      );
+      await this.SequentialNumbering(surveyId, questionId, createDto);
 
-      const { content, optionScore } = createDto;
-      const SequenceNumber = SequentialNumbering.optionNumber;
-      const NewDto = { SequenceNumber, content, optionScore };
-
-      const option = this.optionsRepository.create(NewDto);
-      return await this.optionsRepository.save(option);
+      return await this.optionsRepository.save(new Options(createDto));
     } catch (error) {
       this.logger.error(
         `해당 선택지 생성 중 에러가 발생했습니다: ${error.message}`,
@@ -134,7 +129,7 @@ export class OptionsService {
     }
   }
 
-  // 선택지 수정 (updateOption)
+  // 선택지 수정 (updateOption) -> 내용만 수정 가능
   async updateOption(
     surveyId: number,
     questionId: number,
@@ -142,18 +137,14 @@ export class OptionsService {
     updateDto: UpdateOptionDto,
   ): Promise<Options> {
     try {
-      await this.surveysRepository.findOneOrFail({
-        where: { id: surveyId },
-        select: ['id'],
+      const option = await this.optionsRepository.findOne({
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+          id: optionId,
+        },
       });
-      await this.questionsRepository.findOneOrFail({
-        where: { id: questionId },
-        select: ['id'],
-      });
-      const option = await this.optionsRepository.findOneOrFail({
-        where: { id: optionId },
-      });
-
+      // 중복검사
       const { content } = updateDto;
       const existContent = await this.optionsRepository.findOne({
         where: {
@@ -169,8 +160,12 @@ export class OptionsService {
       }
 
       option.content = updateDto.content;
-      await this.optionsRepository.save(option);
-      return await this.optionsRepository.findOne({ where: { id: optionId } });
+      await this.optionsRepository.save(
+        new Options(Object.assign(option, updateDto)),
+      );
+      return await this.optionsRepository.findOne({
+        where: { id: optionId },
+      });
     } catch (error) {
       this.logger.error(
         `해당 선택지 수정 중 에러가 발생했습니다: ${error.message}`,
@@ -186,16 +181,12 @@ export class OptionsService {
     optionId: number,
   ): Promise<EntityWithId> {
     try {
-      await this.surveysRepository.findOneOrFail({
-        where: { id: surveyId },
-        select: ['id'],
-      });
-      await this.questionsRepository.findOneOrFail({
-        where: { id: questionId },
-        select: ['id'],
-      });
-      const option = await this.optionsRepository.findOneOrFail({
-        where: { id: optionId },
+      const option = await this.optionsRepository.findOne({
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+          id: optionId,
+        },
       });
       await this.optionsRepository.remove(option);
       return new EntityWithId(optionId);
@@ -253,8 +244,6 @@ export class OptionsService {
           '중복된 점수의 다른 선택지가 이미 존재합니다. 다른 점수로 작성해주세요.',
         );
       }
-
-      return createDto;
     } catch (error) {
       this.logger.error(
         `해당 선택지 생성을 위한 선택지 중복검사 중 에러가 발생했습니다: ${error.message}`,
@@ -326,6 +315,5 @@ export class OptionsService {
         '선택지 번호는 순서대로 생성 가능합니다. 5번을 생성해주세요.',
       );
     }
-    return createDto;
   }
 }

@@ -10,9 +10,7 @@ import { Answers } from '../entities/answers.entity';
 import { EntityWithId } from 'src/survey.type';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Questions } from 'src/questions/entities/questions.entity';
-import { Options } from 'src/options/entities/options.entity';
 import { OptionsService } from 'src/options/services/options.service';
-import { QuestionsService } from 'src/questions/services/questions.service';
 import { UpdateAnswerDto } from '../dto/update-answer.dto';
 import { Surveys } from 'src/surveys/entities/surveys.entity';
 
@@ -22,8 +20,6 @@ export class AnswersService {
   constructor(
     @InjectRepository(Answers)
     private readonly answersRepository: Repository<Answers>,
-    @InjectRepository(Surveys)
-    private readonly surveysRepository: Repository<Surveys>,
     @InjectRepository(Questions)
     private readonly questionsRepository: Repository<Questions>,
     private readonly optionsService: OptionsService,
@@ -35,13 +31,11 @@ export class AnswersService {
     questionId: number,
   ): Promise<Answers[]> {
     try {
-      await this.surveysRepository.findOneOrFail({
-        where: { id: surveyId },
-      });
-      await this.questionsRepository.findOneOrFail({
-        where: { id: questionId },
-      });
       const answers = await this.answersRepository.find({
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+        },
         select: ['id', 'answerNumber'],
       });
       if (!answers.length) {
@@ -65,14 +59,13 @@ export class AnswersService {
     answerId: number,
   ): Promise<Answers> {
     try {
-      await this.surveysRepository.findOneOrFail({
-        where: { id: surveyId },
-      });
-      await this.questionsRepository.findOneOrFail({
-        where: { id: questionId },
-      });
       return await this.answersRepository.findOneOrFail({
-        where: { id: answerId },
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+          id: answerId,
+        },
+        select: ['id', 'answerNumber'],
       });
     } catch (error) {
       this.logger.error(
@@ -89,17 +82,22 @@ export class AnswersService {
     createDto: CreateAnswerDto,
   ): Promise<Answers> {
     try {
-      await this.surveysRepository.findOneOrFail({
-        where: { id: surveyId },
-      });
-      const question = await this.questionsRepository.findOneOrFail({
-        where: { id: questionId },
+      const question = await this.questionsRepository.findOne({
+        where: {
+          survey: { id: surveyId },
+          id: questionId,
+        },
       });
       if ((question.isAnswered = true)) {
         throw new BadRequestException('이미 답변이 완료된 문항입니다.');
       }
+      // 답변 생성 및 수정용 답안번호와 동일한 선택지번호 조회
       const { answerNumber } = createDto;
-      const option = await this.optionsService.optionNumber(answerNumber);
+      const option = await this.optionsService.optionNumber(
+        surveyId,
+        questionId,
+        answerNumber,
+      );
 
       const create = this.answersRepository.create(createDto);
       const answer = await this.answersRepository.save(create);
@@ -127,21 +125,32 @@ export class AnswersService {
     updateDto: UpdateAnswerDto,
   ): Promise<Answers> {
     try {
-      await this.surveysRepository.findOneOrFail({
-        where: { id: surveyId },
-      });
       const question = await this.questionsRepository.findOneOrFail({
-        where: { id: questionId },
+        where: {
+          survey: { id: surveyId },
+          id: questionId,
+        },
       });
-      if ((question.isAnswered = false)) {
+      const answer = await this.answersRepository.findOne({
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+          id: answerId,
+        },
+      });
+
+      if ((question.isAnswered = false) || !answer) {
         throw new BadRequestException('아직 답변이 완료되지 않은 문항입니다.');
       }
-      await this.answersRepository.findOneOrFail({
-        where: { id: answerId },
-      });
+
       const { answerNumber } = updateDto;
 
-      const option = await this.optionsService.optionNumber(answerNumber);
+      // 답변 생성 및 수정용 답안번호와 동일한 선택지번호 조회
+      const option = await this.optionsService.optionNumber(
+        surveyId,
+        questionId,
+        answerNumber,
+      );
       const update = await this.answersRepository.update(
         { id: answerId },
         { answerNumber: answerNumber },
@@ -168,15 +177,20 @@ export class AnswersService {
     answerId: number,
   ): Promise<EntityWithId> {
     try {
-      await this.surveysRepository.findOneOrFail({
-        where: { id: surveyId },
+      const question = await this.questionsRepository.findOne({
+        where: {
+          survey: { id: surveyId },
+          id: questionId,
+        },
       });
-      const question = await this.questionsRepository.findOneOrFail({
-        where: { id: questionId },
+      const answer = await this.answersRepository.findOne({
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+          id: answerId,
+        },
       });
-      const answer = await this.answersRepository.findOneOrFail({
-        where: { id: answerId },
-      });
+      // 답변 삭제된 문항 상태 false로 변경 및 0점처리
       const remove = await this.answersRepository.remove(answer);
       if (remove) {
         question.isAnswered = false;

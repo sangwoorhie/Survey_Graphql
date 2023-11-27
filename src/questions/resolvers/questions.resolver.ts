@@ -48,7 +48,7 @@ export class QuestionsResolver {
     return await this.questionsService.createQuestion(surveyId, createDto);
   }
 
-  // 문항 수정 (updateQuestion)
+  // 문항 수정 (updateQuestion) => 내용만 수정 가능
   @Mutation(() => Questions, { name: 'updateQuestion' })
   public async updateQuestion(
     @Args('surveyId', { type: () => Int }) surveyId: number,
