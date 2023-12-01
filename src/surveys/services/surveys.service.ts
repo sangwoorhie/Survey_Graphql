@@ -48,7 +48,7 @@ export class SurveysService {
       const survey = await this.surveysRepository.findOneOrFail({
         where: { id: surveyId },
         select: ['id', 'title', 'description', 'isDone', 'totalScore'],
-        relations: ['questions'],
+        relations: ['questions', 'options'],
       });
 
       const allQuestions = await this.questionsRepository.find({

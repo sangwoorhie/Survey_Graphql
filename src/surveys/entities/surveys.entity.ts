@@ -21,7 +21,6 @@ export class Surveys {
   @Column({
     type: 'varchar',
     nullable: false,
-    // unique: true,
   })
   @Field(() => String)
   title: string;
@@ -29,7 +28,6 @@ export class Surveys {
   @Column({
     type: 'varchar',
     nullable: false,
-    // unique: true,
   })
   @Field(() => String)
   description: string;

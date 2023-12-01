@@ -65,6 +65,7 @@ export class AnswersService {
           question: { id: questionId },
           id: answerId,
         },
+        relations: ['survey', 'question'],
         select: ['id', 'answerNumber'],
       });
     } catch (error) {

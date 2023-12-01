@@ -38,7 +38,7 @@ export class Options {
   @Field(() => String)
   content: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', nullable: true })
   @Field(() => Int)
   optionScore: number;
 

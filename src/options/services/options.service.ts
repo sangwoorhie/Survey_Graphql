@@ -64,6 +64,7 @@ export class OptionsService {
           id: optionId,
         },
         select: ['id', 'optionNumber', 'content', 'optionScore'],
+        // relations: ['survey', 'question'],
       });
     } catch (error) {
       this.logger.error(
@@ -160,7 +161,11 @@ export class OptionsService {
         { content },
       );
       return await this.optionsRepository.findOne({
-        where: { id: optionId },
+        where: {
+          survey: { id: surveyId },
+          question: { id: questionId },
+          id: optionId,
+        },
       });
     } catch (error) {
       this.logger.error(
