@@ -100,6 +100,18 @@ export class QuestionsService {
           id: questionId,
         },
       });
+
+      const existContent = await this.questionsRepository.findOne({
+        where: {
+          content: updateDto.content,
+        },
+      });
+      if (existContent) {
+        throw new BadRequestException(
+          '중복된 내용의 다른 문항이 이미 존재합니다. 다른 내용으로 작성해주세요.',
+        );
+      }
+
       await this.questionsRepository.save(
         new Questions(Object.assign(question, updateDto)),
       );
