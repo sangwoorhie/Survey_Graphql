@@ -22,7 +22,7 @@ export class SurveysResolver {
   constructor(private readonly surveysService: SurveysService) {}
 
   // 설문지 목록조회 (getAllSurveys)
-  @Query(() => [Surveys], { name: 'getAllSurveys' })
+  @Query(() => Surveys, { name: 'getAllSurveys' })
   public async getAllSurveys() {
     return await this.surveysService.getAllSurveys();
   }

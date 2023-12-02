@@ -45,25 +45,11 @@ export class SurveysService {
   // 단일 설문지 조회 (getSingleSurvey)
   async getSingleSurvey(surveyId: number): Promise<Surveys> {
     try {
-      const survey = await this.surveysRepository.findOneOrFail({
+      return await this.surveysRepository.findOne({
         where: { id: surveyId },
         select: ['id', 'title', 'description', 'isDone', 'totalScore'],
         relations: ['questions', 'options', 'answers'],
       });
-
-      const allQuestions = await this.questionsRepository.find({
-        where: { survey: { id: surveyId } },
-      });
-
-      // 각 문항의 합이 설문지의 총합으로 함.
-      let totalQuestionScore = 0;
-      allQuestions.forEach((question) => {
-        totalQuestionScore += question.questionScore;
-      });
-      survey.totalScore = totalQuestionScore;
-      await this.surveysRepository.save(survey);
-
-      return survey;
     } catch (error) {
       this.logger.error(
         `해당 설문지 조회 중 에러가 발생했습니다: ${error.message}`,

@@ -35,21 +35,21 @@ export class Surveys {
   @Column({
     type: 'boolean',
     default: false,
-    nullable: true,
+    // nullable: true,
   })
-  @Field(() => Boolean, { defaultValue: false, nullable: true })
+  @Field(() => Boolean, { defaultValue: false })
   isDone: boolean;
 
   @Column({ default: 0 })
-  @Field(() => Int, { defaultValue: 0, nullable: true })
+  @Field(() => Int, { defaultValue: 0 })
   totalScore: number;
 
   @CreateDateColumn({ name: 'createdAt', type: 'timestamp' })
-  @Field(() => Date, { nullable: true })
+  @Field(() => Date)
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updatedAt', type: 'timestamp' })
-  @Field(() => Date, { nullable: true })
+  @Field(() => Date)
   updatedAt: Date;
 
   // 관계설정
@@ -57,20 +57,20 @@ export class Surveys {
   @OneToMany(() => Questions, (questions) => questions.survey, {
     cascade: true,
   })
-  @Field(() => [Questions], { nullable: true })
+  @Field(() => [Questions], { nullable: false })
   questions: Promise<Questions[]>; // Lazy Relations
 
   // Survey - Option : 1 : N 관계
   @OneToMany(() => Options, (options) => options.survey, {
     cascade: true,
   })
-  @Field(() => [Options], { nullable: true })
+  @Field(() => [Options])
   options: Promise<Options[]>; // Lazy Relations
 
   // Survey - Answer : 1 : N 관계
   @OneToMany(() => Answers, (answers) => answers.survey, {
     cascade: false,
   })
-  @Field(() => [Answers], { nullable: true })
+  @Field(() => [Answers])
   answers: Promise<Answers[]>; // Lazy Relations
 }

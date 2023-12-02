@@ -15,19 +15,23 @@ import { Field, Int, ObjectType } from '@nestjs/graphql';
 @Entity({ schema: 'surveyproject', name: 'Options' })
 @ObjectType()
 export class Options {
+  constructor(partial?: Partial<Options>) {
+    Object.assign(this, partial);
+  }
+
   @PrimaryGeneratedColumn()
   @Field(() => Int)
   id: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int', nullable: false })
   @Field(() => Int)
   surveyId: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int', nullable: false })
   @Field(() => Int)
   questionId: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int' })
   @Field(() => Int)
   optionNumber: number;
 
@@ -38,7 +42,7 @@ export class Options {
   @Field(() => String)
   content: string;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int' })
   @Field(() => Int)
   optionScore: number;
 
@@ -53,13 +57,13 @@ export class Options {
   // 관계설정
   // Options - Survey : N : 1 관계
   @ManyToOne(() => Surveys, (survey) => survey.options)
-  @Field(() => Surveys, { nullable: true })
+  @Field(() => Surveys, { nullable: false })
   @JoinColumn({ name: 'surveyId' })
   survey: Promise<Surveys>;
 
   // Options - Questions : N : 1 관계
   @ManyToOne(() => Questions, (question) => question.options)
-  @Field(() => Questions, { nullable: true })
+  @Field(() => Questions, { nullable: false })
   @JoinColumn({ name: 'questionId' })
   question: Promise<Questions>;
 }

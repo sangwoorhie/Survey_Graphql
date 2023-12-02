@@ -55,7 +55,7 @@ export class QuestionsService {
           survey: { id: surveyId },
           id: questionId,
         },
-        relations: ['survey', 'options'],
+        relations: ['survey', 'options', 'answers'],
       });
     } catch (error) {
       this.logger.error(
@@ -75,10 +75,38 @@ export class QuestionsService {
         where: { id: surveyId },
       });
 
-      //문항 중복검사
-      await this.existQuestion(surveyId, createDto);
+      // 문항 생성
+      const { questionNumber, content } = createDto;
 
-      return await this.questionsRepository.save(new Questions(createDto));
+      const existNumber = await this.questionsRepository.findOne({
+        where: {
+          survey: { id: surveyId },
+          questionNumber: questionNumber,
+        },
+      });
+      if (existNumber) {
+        throw new ConflictException(
+          '중복된 번호의 다른 문항이 이미 존재합니다. 다른 번호로 작성해주세요.',
+        );
+      }
+      const existContent = await this.questionsRepository.findOne({
+        where: {
+          survey: { id: surveyId },
+          content,
+        },
+      });
+      if (existContent) {
+        throw new ConflictException(
+          '중복된 내용의 다른 문항이 이미 존재합니다. 다른 내용으로 작성해주세요.',
+        );
+      }
+
+      const newQuestion = this.questionsRepository.create({
+        surveyId,
+        questionNumber,
+        content,
+      });
+      return await this.questionsRepository.save(newQuestion);
     } catch (error) {
       this.logger.error(
         `해당 문항 생성 중 에러가 발생했습니다: ${error.message}`,
@@ -87,7 +115,7 @@ export class QuestionsService {
     }
   }
 
-  // 문항 수정 (updateQuestion)
+  // 문항 수정 (updateQuestion) => 내용(content)만 수정 가능
   async updateQuestion(
     surveyId: number,
     questionId: number,
@@ -103,6 +131,7 @@ export class QuestionsService {
 
       const existContent = await this.questionsRepository.findOne({
         where: {
+          survey: { id: surveyId },
           content: updateDto.content,
         },
       });

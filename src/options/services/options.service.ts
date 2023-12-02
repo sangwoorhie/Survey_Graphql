@@ -81,13 +81,17 @@ export class OptionsService {
     answerNumber: number,
   ): Promise<Options> {
     try {
-      return await this.optionsRepository.findOne({
+      const matching = await this.optionsRepository.findOne({
         where: {
           surveyId,
           questionId,
           optionNumber: answerNumber,
         },
       });
+      if (!matching) {
+        throw new NotFoundException('해당 선택지 번호가 존재하지 않습니다.');
+      }
+      return matching;
     } catch (error) {
       this.logger.error(
         `답변 생성을 위한 선택지번호 조회 중 에러가 발생했습니다: ${error.message}`,
@@ -111,11 +115,34 @@ export class OptionsService {
       });
 
       // 선택지 중복검사
-      await this.existOption(surveyId, questionId, createDto);
+      const option = await this.existOption(surveyId, questionId, createDto);
+      if (option.existNumber) {
+        throw new ConflictException(
+          '중복된 번호의 다른 선택지가 이미 존재합니다. 다른 번호로 작성해주세요.',
+        );
+      }
+      if (option.existContent) {
+        throw new ConflictException(
+          '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 작성해주세요.',
+        );
+      }
+      if (option.existScore) {
+        throw new ConflictException(
+          '중복된 점수의 다른 선택지가 이미 존재합니다. 다른 점수로 작성해주세요.',
+        );
+      }
 
       // 선택지 순서대로 (Sequential Numbering)
       // await this.SequentialNumbering(surveyId, questionId, createDto);
-      const newOption = this.questionsRepository.create(createDto);
+
+      const { optionNumber, content, optionScore } = createDto;
+      const newOption = this.optionsRepository.create({
+        surveyId,
+        questionId,
+        optionNumber,
+        content,
+        optionScore,
+      });
       return await this.optionsRepository.save(newOption);
     } catch (error) {
       this.logger.error(
@@ -141,12 +168,11 @@ export class OptionsService {
         },
       });
 
-      const { content } = updateDto;
-      const existContent = await this.optionsRepository.findOneOrFail({
+      const existContent = await this.optionsRepository.findOne({
         where: {
           survey: { id: surveyId },
           question: { id: questionId },
-          content: content,
+          content: updateDto.content,
         },
       });
 
@@ -158,8 +184,9 @@ export class OptionsService {
 
       await this.optionsRepository.update(
         { surveyId, questionId, id: optionId },
-        { content },
+        { content: updateDto.content },
       );
+
       return await this.optionsRepository.findOne({
         where: {
           survey: { id: surveyId },
@@ -215,12 +242,6 @@ export class OptionsService {
           optionNumber: optionNumber,
         },
       });
-      if (existNumber) {
-        throw new ConflictException(
-          '중복된 번호의 다른 선택지가 이미 존재합니다. 다른 번호로 작성해주세요.',
-        );
-      }
-
       const existContent = await this.optionsRepository.findOne({
         where: {
           survey: { id: surveyId },
@@ -228,11 +249,6 @@ export class OptionsService {
           content: content,
         },
       });
-      if (existContent) {
-        throw new ConflictException(
-          '중복된 내용의 다른 선택지가 이미 존재합니다. 다른 내용으로 작성해주세요.',
-        );
-      }
       const existScore = await this.optionsRepository.findOne({
         where: {
           survey: { id: surveyId },
@@ -240,11 +256,7 @@ export class OptionsService {
           optionScore: optionScore,
         },
       });
-      if (existScore) {
-        throw new ConflictException(
-          '중복된 점수의 다른 선택지가 이미 존재합니다. 다른 점수로 작성해주세요.',
-        );
-      }
+      return { existNumber, existContent, existScore };
     } catch (error) {
       this.logger.error(
         `해당 선택지 생성을 위한 선택지 중복검사 중 에러가 발생했습니다: ${error.message}`,
@@ -275,7 +287,7 @@ export class OptionsService {
     }
     if (
       existQuestion &&
-      existQuestion.optionNumber === 1 &&
+      [1].includes(existQuestion.optionNumber) &&
       ![2].includes(optionNumber) &&
       [1, 3, 4, 5].includes(optionNumber)
     ) {
@@ -306,9 +318,13 @@ export class OptionsService {
       );
     }
     // existOption.optionNumber에 1, 2, 3, 4번이 있는데, 5번이 없고, optionNumber가 1, 2, 3, 4 중 하나인 경우
+    const oneToFour = [1, 2, 3, 4];
+    const numbersToCheckOneToFour = [1, 2, 3, 4];
+    const allNumbersIncluded = numbersToCheckOneToFour.every((number) =>
+      oneToFour.includes(number),
+    );
     if (
-      existQuestion &&
-      [1, 2, 3, 4].includes(existQuestion.optionNumber) &&
+      allNumbersIncluded &&
       ![5].includes(existQuestion.optionNumber) &&
       [1, 2, 3, 4].includes(optionNumber)
     ) {

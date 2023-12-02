@@ -18,6 +18,8 @@ import { Surveys } from 'src/surveys/entities/surveys.entity';
 export class AnswersService {
   private readonly logger = new Logger(AnswersService.name);
   constructor(
+    @InjectRepository(Surveys)
+    private readonly surveysRepository: Repository<Surveys>,
     @InjectRepository(Answers)
     private readonly answersRepository: Repository<Answers>,
     @InjectRepository(Questions)
@@ -98,14 +100,28 @@ export class AnswersService {
         answerNumber,
       );
 
-      const create = this.answersRepository.create(createDto);
+      const survey = await this.surveysRepository.findOne({
+        where: {
+          id: surveyId,
+        },
+      });
+
+      const create = this.answersRepository.create({
+        surveyId,
+        questionId,
+        answerNumber,
+      });
       const answer = await this.answersRepository.save(create);
 
       // 답변된 문항 상태 true로 변경 및 선택된 옵션으로 점수부여
       if (option && answer) {
         question.isAnswered = true;
+
         question.questionScore = option.optionScore;
         await this.questionsRepository.save(question);
+
+        survey.totalScore += question.questionScore;
+        await this.surveysRepository.save(survey);
       }
       return answer;
     } catch (error) {
@@ -138,6 +154,12 @@ export class AnswersService {
         },
       });
 
+      const survey = await this.surveysRepository.findOne({
+        where: {
+          id: surveyId,
+        },
+      });
+
       if ((question.isAnswered = false) || !answer) {
         throw new BadRequestException('아직 답변이 완료되지 않은 문항입니다.');
       }
@@ -156,9 +178,14 @@ export class AnswersService {
       );
       // 답변된 문항 상태 true로 변경 및 선택된 옵션으로 점수부여
       if (option && update) {
+        survey.totalScore -= question.questionScore; // 설문지 기존값 제거
+
         question.isAnswered = true;
-        question.questionScore = option.optionScore;
+        question.questionScore = option.optionScore; // 문항 새로운값 부여
         await this.questionsRepository.save(question);
+
+        survey.totalScore += question.questionScore; // 설문지 새로운값 추가
+        await this.surveysRepository.save(survey);
       }
       return await this.answersRepository.findOne({ where: { id: answerId } });
     } catch (error) {
@@ -176,6 +203,12 @@ export class AnswersService {
     answerId: number,
   ): Promise<EntityWithId> {
     try {
+      const survey = await this.surveysRepository.findOne({
+        where: {
+          id: surveyId,
+        },
+      });
+
       const question = await this.questionsRepository.findOne({
         where: {
           survey: { id: surveyId },
@@ -192,6 +225,10 @@ export class AnswersService {
       // 답변 삭제된 문항 상태 false로 변경 및 0점처리
       const remove = await this.answersRepository.remove(answer);
       if (remove) {
+        survey.isDone = false;
+        survey.totalScore -= question.questionScore;
+        await this.surveysRepository.save(survey);
+
         question.isAnswered = false;
         question.questionScore = 0;
         await this.questionsRepository.save(question);

@@ -45,6 +45,8 @@ export class QuestionsResolver {
     @Args('createDto', { type: () => CreateQuestionDto })
     createDto: CreateQuestionDto,
   ) {
+    const question = new Questions();
+    question.surveyId = surveyId;
     return await this.questionsService.createQuestion(surveyId, createDto);
   }
 

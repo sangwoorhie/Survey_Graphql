@@ -19,15 +19,15 @@ export class Answers {
   @Field(() => Int)
   id: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int', nullable: false })
   @Field(() => Int)
   surveyId: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int', nullable: false })
   @Field(() => Int)
   questionId: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int', nullable: false })
   @Field(() => Int)
   answerNumber: number;
 
@@ -43,7 +43,7 @@ export class Answers {
   // Answers - Surveys : N : 1 관계
   @ManyToOne(() => Surveys, (survey) => survey.answers)
   @JoinColumn({ name: 'surveyId' })
-  @Field(() => Surveys, { nullable: true })
+  @Field(() => Surveys, { nullable: false })
   survey: Promise<Surveys>;
 
   // Answers - Questions : 1 : 1 관계

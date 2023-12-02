@@ -25,18 +25,16 @@ export class Questions {
   @Field(() => Int)
   id: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int', nullable: false })
   @Field(() => Int)
   surveyId: number;
 
-  @Column({ type: 'int', nullable: true })
+  @Column({ type: 'int', nullable: false })
   @Field(() => Int)
   questionNumber: number;
 
   @Column({
     type: 'varchar',
-    nullable: true,
-    // unique: true,
   })
   @Field(() => String)
   content: string;
@@ -64,20 +62,20 @@ export class Questions {
   // Question - Survey : N : 1 관계
   @ManyToOne(() => Surveys, (survey) => survey.questions)
   @JoinColumn({ name: 'surveyId' })
-  @Field(() => Surveys, { nullable: true })
+  @Field(() => Surveys, { nullable: false })
   survey: Promise<Surveys>; // Lazy Relations
 
   // Question - Option : 1 : N 관계
   @OneToMany(() => Options, (options) => options.question, {
     cascade: true,
   })
-  @Field(() => [Options], { nullable: true })
+  @Field(() => [Options])
   options: Promise<Options[]>; // Lazy Relations
 
   // Question - Answer : 1 : 1 관계
   @OneToOne(() => Answers, (answer) => answer.question, {
     cascade: false,
   })
-  @Field(() => [Answers], { nullable: true })
+  @Field(() => [Answers])
   answer: Answers;
 }
