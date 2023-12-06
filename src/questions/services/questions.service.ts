@@ -55,7 +55,7 @@ export class QuestionsService {
           survey: { id: surveyId },
           id: questionId,
         },
-        relations: ['survey', 'options', 'answers'],
+        relations: ['survey', 'options'],
       });
     } catch (error) {
       this.logger.error(
