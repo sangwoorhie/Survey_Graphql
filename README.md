@@ -12,36 +12,7 @@ Survey Project는 객관식 선택지 문항을 만들 수 있는 설문지 입�
 
 ## 🔎설치 및 실행 방법
 
-```bash
-$ npm install
-```
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-
-```
-![환경변수](https://github.com/sangwoorhie/Survey_Project/assets/131964697/59e6c43c-8a6e-47b9-a688-70a54aafe52b)
--
-
-- 환경변수 셋팅 경로 : Survey/src/configs/typeorm.config.ts
-- npm install dotenv 로 라이브러리 설치 후, 최상단 디렉토리(Survey)에 .env파일을 생성하여 PostgreSql 데이터베이스 정보를 기입합니다.
-- 환경변수 셋팅 후, npm run start:dev로 서버를 실행시킨 다음에, http://localhost:4000/graphql 에 접속하여 Playground에서 테스트하시면 됩니다. (포트번호 4000)
- <br>
- <br>
-
-## 💡API
-
--  설문지  CRUD
--  문항 CRUD
--  선택지 CRUD
--  답변 CRUD
--  유저 CRUD
+``인
 -  설문지 완료
 -  완료된 설문지 확인
 
@@ -79,9 +50,9 @@ $ npm run start:prod
 
 ## 📊ERD
 
-- ERD : [[drawsql.app/teams/jake-7/diagrams/outbody-erd](https://drawsql.app/teams/jake-7/diagrams/survey-project)]
+- ERD : [[(https://drawsql.app/teams/jake-7/diagrams/survey-project)](https://drawsql.app/teams/jake-7/diagrams/survey-project)]
 
-![drawSQL-survey-project-export-2023-11-26](https://github.com/sangwoorhie/BackEnd/assets/131964697/a56dce2c-c1e5-4ff0-a51c-861380e09d28)
+![image](https://github.com/sangwoorhie/Survey_Project/assets/131964697/6e23f6e6-61b3-470f-ac28-f747ec52d408)
 <br>
 <br>
 
