@@ -41,6 +41,7 @@ $ npm run start:prod
 -  문항 CRUD
 -  선택지 CRUD
 -  답변 CRUD
+-  유저 CRUD
 -  설문지 완료
 -  완료된 설문지 확인
 
@@ -57,6 +58,10 @@ $ npm run start:prod
 |     단일 문항조회    | getSingleQuestion |    답안 생성   |    createAnswer    |
 |      문항 생성       |  createQuestion   |    답안 수정   |    updateAnswer    |
 |      문항 수정       |  updateQuestion   |    답안 삭제   |    deleteAnswer    |
+|      회원 가입       |    createUser     |    회원 탈퇴   |     deleteUser     |
+|    회원정보 수정     |    updateUser     |  단일 회원조회 |    getSingleUser   |
+|       로그인         |     loginUser     |                |                    |
+
 
 <br>
 <br>
