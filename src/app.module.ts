@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
     AnswersModule,
     OptionsModule,
     SurveysModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

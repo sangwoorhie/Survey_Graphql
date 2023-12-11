@@ -7,7 +7,6 @@ import {
   ResolveField,
   Parent,
 } from '@nestjs/graphql';
-import { Logger } from '@nestjs/common';
 import { EntityWithId } from 'src/survey.type';
 import { Questions } from '../entities/questions.entity';
 import { CreateQuestionDto } from '../dto/create-question.dto';

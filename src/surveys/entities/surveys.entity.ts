@@ -2,6 +2,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -10,6 +13,7 @@ import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Questions } from 'src/questions/entities/questions.entity';
 import { Answers } from 'src/answers/entities/answers.entity';
 import { Options } from 'src/options/entities/options.entity';
+import { Users } from 'src/users/entities/user.entity';
 
 @Entity({ schema: 'surveyproject', name: 'Surveys' })
 @ObjectType()
@@ -73,4 +77,16 @@ export class Surveys {
   })
   @Field(() => [Answers])
   answers: Promise<Answers[]>; // Lazy Relations
+
+  // Survey - User : N : N 관계
+  @ManyToMany(() => Users, (users) => users.surveys, {
+    cascade: false,
+  })
+  // @JoinTable()
+  @Field(() => [Users])
+  users: Users[];
+
+  @Column({ type: 'int', nullable: true })
+  @Field(() => Int)
+  userId: number;
 }

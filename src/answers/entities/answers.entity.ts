@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -11,6 +12,7 @@ import {
 import { Surveys } from 'src/surveys/entities/surveys.entity';
 import { Questions } from 'src/questions/entities/questions.entity';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Users } from 'src/users/entities/user.entity';
 
 @Entity({ schema: 'surveyproject', name: 'Answers' })
 @ObjectType()
@@ -51,4 +53,10 @@ export class Answers {
   @JoinColumn({ name: 'questionId' })
   @Field(() => [Questions], { nullable: false })
   question: Questions;
+
+  // Answer - User : N : 1 관계
+  @ManyToOne(() => Users, (user) => user.answers)
+  @JoinColumn({ name: 'userId' })
+  @Field(() => Users, { nullable: false })
+  user: Promise<Users>;
 }

@@ -14,6 +14,7 @@ import { UpdateAnswerDto } from '../dto/update-answer.dto';
 import { EntityWithId } from 'src/survey.type';
 import { Surveys } from 'src/surveys/entities/surveys.entity';
 import { Questions } from 'src/questions/entities/questions.entity';
+import { HttpCode } from '@nestjs/common';
 
 @Resolver(() => Answers)
 export class AnswersResolver {
@@ -72,6 +73,7 @@ export class AnswersResolver {
 
   // 답안 삭제 (deleteAnswer)
   @Mutation(() => EntityWithId, { name: 'deleteAnswer' })
+  @HttpCode(204)
   public async deleteAnswer(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,
