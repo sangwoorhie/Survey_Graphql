@@ -8,8 +8,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { Questions } from 'src/questions/entities/questions.entity';
-import { Surveys } from 'src/surveys/entities/surveys.entity';
+import { Questions } from 'src/entities/questions.entity';
+import { Surveys } from 'src/entities/surveys.entity';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 
 @Entity({ schema: 'surveyproject', name: 'Options' })

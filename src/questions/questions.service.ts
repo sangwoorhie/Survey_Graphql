@@ -5,13 +5,13 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateQuestionDto } from '../dto/create-question.dto';
-import { UpdateQuestionDto } from '../dto/update-question.dto';
+import { CreateQuestionDto } from './dto/create-question.dto';
+import { UpdateQuestionDto } from './dto/update-question.dto';
 import { Repository } from 'typeorm';
 import { Questions } from '../entities/questions.entity';
 import { EntityWithId } from 'src/survey.type';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Surveys } from 'src/surveys/entities/surveys.entity';
+import { Surveys } from 'src/entities/surveys.entity';
 
 @Injectable()
 export class QuestionsService {

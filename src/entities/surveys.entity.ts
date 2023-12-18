@@ -10,10 +10,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Questions } from 'src/questions/entities/questions.entity';
-import { Answers } from 'src/answers/entities/answers.entity';
-import { Options } from 'src/options/entities/options.entity';
-import { Users } from 'src/users/entities/user.entity';
+import { Questions } from 'src/entities/questions.entity';
+import { Answers } from 'src/entities/answers.entity';
+import { Options } from 'src/entities/options.entity';
+import { Users } from 'src/entities/user.entity';
 
 @Entity({ schema: 'surveyproject', name: 'Surveys' })
 @ObjectType()

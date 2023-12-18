@@ -8,19 +8,22 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { Options } from '../entities/options.entity';
-import { OptionsService } from '../services/options.service';
-import { CreateOptionDto } from '../dto/create-option.dto';
-import { UpdateOptionDto } from '../dto/update-option.dto';
+import { OptionsService } from './options.service';
+import { CreateOptionDto } from './dto/create-option.dto';
+import { UpdateOptionDto } from './dto/update-option.dto';
 import { EntityWithId } from 'src/survey.type';
-import { Surveys } from 'src/surveys/entities/surveys.entity';
-import { Questions } from 'src/questions/entities/questions.entity';
+import { Surveys } from 'src/entities/surveys.entity';
+import { Questions } from 'src/entities/questions.entity';
 
 @Resolver(() => Options)
 export class OptionsResolver {
   constructor(private readonly optionsService: OptionsService) {}
 
   // 선택지 목록조회 (getAllOptions)
-  @Query(() => [Options], { name: 'getAllOptions' })
+  @Query(() => [Options], {
+    name: 'getAllOptions',
+    description: '선택지 목록조회',
+  })
   public async getAllQuestions(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,
@@ -29,7 +32,10 @@ export class OptionsResolver {
   }
 
   // 단일 선택지조회 (getSingleOption)
-  @Query(() => Options, { name: 'getSingleOption' })
+  @Query(() => Options, {
+    name: 'getSingleOption',
+    description: '단일 선택지조회',
+  })
   public async getSingleOption(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,
@@ -39,7 +45,7 @@ export class OptionsResolver {
   }
 
   // 선택지 생성 (createOption)
-  @Mutation(() => Options, { name: 'createOption' })
+  @Mutation(() => Options, { name: 'createOption', description: '선택지 생성' })
   public async createOption(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,
@@ -54,7 +60,7 @@ export class OptionsResolver {
   }
 
   // 선택지 수정 (updateOption) => 내용(content)만 수정 가능
-  @Mutation(() => Options, { name: 'updateOption' })
+  @Mutation(() => Options, { name: 'updateOption', description: '선택지 수정' })
   public async updateOption(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,
@@ -71,7 +77,10 @@ export class OptionsResolver {
   }
 
   // 선택지 삭제 (deleteOption)
-  @Mutation(() => EntityWithId, { name: 'deleteOption' })
+  @Mutation(() => EntityWithId, {
+    name: 'deleteOption',
+    description: '선택지 삭제',
+  })
   public async deleteOption(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,

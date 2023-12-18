@@ -5,14 +5,14 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CreateUserDto } from '../dto/create-user.dto';
-import { UpdateUserDto } from '../dto/update-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from '../entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { DeleteUserDto } from '../dto/delete-user.dto';
+import { DeleteUserDto } from './dto/delete-user.dto';
 import { EntityWithId } from 'src/survey.type';
 import { Status } from '../../auth/auth_guard/userinfo';
 import { AuthService } from 'src/auth/auth.service';

@@ -4,15 +4,15 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateAnswerDto } from '../dto/create-answer.dto';
+import { CreateAnswerDto } from './dto/create-answer.dto';
 import { Repository } from 'typeorm';
 import { Answers } from '../entities/answers.entity';
 import { EntityWithId } from 'src/survey.type';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Questions } from 'src/questions/entities/questions.entity';
-import { OptionsService } from 'src/options/services/options.service';
-import { UpdateAnswerDto } from '../dto/update-answer.dto';
-import { Surveys } from 'src/surveys/entities/surveys.entity';
+import { Questions } from 'src/entities/questions.entity';
+import { OptionsService } from 'src/options/options.service';
+import { UpdateAnswerDto } from './dto/update-answer.dto';
+import { Surveys } from 'src/entities/surveys.entity';
 
 @Injectable()
 export class AnswersService {

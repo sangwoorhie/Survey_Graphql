@@ -8,26 +8,29 @@ import {
   Int,
 } from '@nestjs/graphql';
 import { Users } from '../entities/user.entity';
-import { Surveys } from 'src/surveys/entities/surveys.entity';
-import { UsersService } from '../services/users.service';
-import { CreateUserDto } from '../dto/create-user.dto';
-import { UpdateUserDto } from '../dto/update-user.dto';
-import { DeleteUserDto } from '../dto/delete-user.dto';
+import { Surveys } from 'src/entities/surveys.entity';
+import { UsersService } from './users.service';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { DeleteUserDto } from './dto/delete-user.dto';
 import { EntityWithId } from 'src/survey.type';
-import { AuthGuardJwtGql } from '../../auth/auth_guard/auth-guard-jwt.gql';
 import { UseGuards } from '@nestjs/common';
-import { CurrentUser } from '../../auth/auth_guard/current-user.decorator';
-import { AuthService } from 'src/auth/auth.service';
 
 @Resolver(() => Users)
 export class UsersResolver {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly authService: AuthService,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
+
+  // 로그인 (loginUser)
+  @Mutation(() => Users, { name: 'loginUser', description: '유저 로그인' })
+  public async loginUser(@CurrentUser() user: Users) {
+    return {
+      userId: user.id,
+      token: this.authService.getTokenForUser(user),
+    };
+  }
 
   // 회원가입 (createUser)
-  @Mutation(() => Users, { name: 'createUser' })
+  @Mutation(() => Users, { name: 'createUser', description: '회원가입' })
   public async createUser(
     @Args('createDto', { type: () => CreateUserDto })
     createDto: CreateUserDto,
@@ -41,7 +44,7 @@ export class UsersResolver {
   }
 
   // 회원정보 수정 (updateUser) => 비밀번호,이름만 수정가능
-  @Mutation(() => Users, { name: 'updateUser' })
+  @Mutation(() => Users, { name: 'updateUser', description: '회원정보 수정' })
   public async updateUser(
     // @Args('userId', { type: () => Int }) userId: number,
     @Args('updateDto', { type: () => UpdateUserDto })
@@ -52,7 +55,10 @@ export class UsersResolver {
   }
 
   // 회원 탈퇴 (deleteUser)
-  @Mutation(() => EntityWithId, { name: 'deleteUser' })
+  @Mutation(() => EntityWithId, {
+    name: 'deleteUser',
+    description: '회원 탈퇴',
+  })
   public async deleteUser(
     // @Args('userId', { type: () => Int }) userId: number,
     @Args('deleteDto', { type: () => DeleteUserDto })
@@ -63,23 +69,12 @@ export class UsersResolver {
   }
 
   // 단일 회원조회 (getSingleUser)
-  @Query(() => Users, { name: 'getSingleUser' })
-  @UseGuards(AuthGuardJwtGql)
+  @Query(() => Users, { name: 'getSingleUser', description: '단일회원 조회' })
   public async getSingleUser(
     @Args('userId', { type: () => Int }) userId: number,
   ) {
     return await this.usersService.getSingleUser(userId);
   }
-
-  // // 로그인 (loginUser)
-  // @Mutation(() => Users, { name: 'loginUser' })
-  // @UseGuards(AuthGuardLocal)
-  // public async loginUser(@CurrentUser() user: Users) {
-  //   return {
-  //     userId: user.id,
-  //     token: this.authService.getTokenForUser(user),
-  //   };
-  // }
 
   // Users - Surveys = N : N
   @ResolveField('surveys')

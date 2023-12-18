@@ -9,19 +9,22 @@ import {
 } from '@nestjs/graphql';
 import { EntityWithId } from 'src/survey.type';
 import { Questions } from '../entities/questions.entity';
-import { CreateQuestionDto } from '../dto/create-question.dto';
-import { UpdateQuestionDto } from '../dto/update-question.dto';
-import { Options } from 'src/options/entities/options.entity';
-import { QuestionsService } from './../services/questions.service';
-import { Surveys } from 'src/surveys/entities/surveys.entity';
-import { Answers } from 'src/answers/entities/answers.entity';
+import { CreateQuestionDto } from './dto/create-question.dto';
+import { UpdateQuestionDto } from './dto/update-question.dto';
+import { Options } from 'src/entities/options.entity';
+import { QuestionsService } from './questions.service';
+import { Surveys } from 'src/entities/surveys.entity';
+import { Answers } from 'src/entities/answers.entity';
 
 @Resolver(() => Questions)
 export class QuestionsResolver {
   constructor(private readonly questionsService: QuestionsService) {}
 
   // 문항 목록조회 (getAllQuestions)
-  @Query(() => [Questions], { name: 'getAllQuestions' })
+  @Query(() => [Questions], {
+    name: 'getAllQuestions',
+    description: '문항 목록조회',
+  })
   public async getAllQuestions(
     @Args('surveyId', { type: () => Int }) surveyId: number,
   ) {
@@ -29,7 +32,10 @@ export class QuestionsResolver {
   }
 
   // 단일 문항조회 (getSingleQuestion)
-  @Query(() => Questions, { name: 'getSingleQuestion' })
+  @Query(() => Questions, {
+    name: 'getSingleQuestion',
+    description: '단일 문항조회',
+  })
   public async getSingleQuestion(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) id: number,
@@ -38,7 +44,10 @@ export class QuestionsResolver {
   }
 
   // 문항 생성 (createQuestion)
-  @Mutation(() => Questions, { name: 'createQuestion' })
+  @Mutation(() => Questions, {
+    name: 'createQuestion',
+    description: '문항 생성',
+  })
   public async createQuestion(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('createDto', { type: () => CreateQuestionDto })
@@ -50,7 +59,10 @@ export class QuestionsResolver {
   }
 
   // 문항 수정 (updateQuestion) => 내용만 수정 가능
-  @Mutation(() => Questions, { name: 'updateQuestion' })
+  @Mutation(() => Questions, {
+    name: 'updateQuestion',
+    description: '문항 수정',
+  })
   public async updateQuestion(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) id: number,
@@ -61,7 +73,10 @@ export class QuestionsResolver {
   }
 
   // 문항 삭제 (deleteQuestion)
-  @Mutation(() => EntityWithId, { name: 'deleteQuestion' })
+  @Mutation(() => EntityWithId, {
+    name: 'deleteQuestion',
+    description: '문항 삭제',
+  })
   public async deleteQuestion(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) id: number,

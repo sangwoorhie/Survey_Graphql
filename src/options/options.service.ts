@@ -5,14 +5,14 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateOptionDto } from '../dto/create-option.dto';
+import { CreateOptionDto } from './dto/create-option.dto';
 import { Repository } from 'typeorm';
 import { Options } from '../entities/options.entity';
 import { EntityWithId } from 'src/survey.type';
-import { UpdateOptionDto } from '../dto/update-option.dto';
+import { UpdateOptionDto } from './dto/update-option.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Surveys } from 'src/surveys/entities/surveys.entity';
-import { Questions } from 'src/questions/entities/questions.entity';
+import { Surveys } from 'src/entities/surveys.entity';
+import { Questions } from 'src/entities/questions.entity';
 
 @Injectable()
 export class OptionsService {

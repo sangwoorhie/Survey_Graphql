@@ -8,12 +8,12 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { Answers } from '../entities/answers.entity';
-import { AnswersService } from '../services/answers.service';
-import { CreateAnswerDto } from '../dto/create-answer.dto';
-import { UpdateAnswerDto } from '../dto/update-answer.dto';
+import { AnswersService } from './answers.service';
+import { CreateAnswerDto } from './dto/create-answer.dto';
+import { UpdateAnswerDto } from './dto/update-answer.dto';
 import { EntityWithId } from 'src/survey.type';
-import { Surveys } from 'src/surveys/entities/surveys.entity';
-import { Questions } from 'src/questions/entities/questions.entity';
+import { Surveys } from 'src/entities/surveys.entity';
+import { Questions } from 'src/entities/questions.entity';
 import { HttpCode } from '@nestjs/common';
 
 @Resolver(() => Answers)

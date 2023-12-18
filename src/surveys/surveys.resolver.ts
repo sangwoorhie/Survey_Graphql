@@ -8,31 +8,37 @@ import {
   ResolveField,
   Parent,
 } from '@nestjs/graphql';
-import { CreateSurveyDto } from '../dto/create-survey.dto';
-import { UpdateSurveyDto } from '../dto/update-survey.dto';
-import { CompleteSurveyDto } from '../dto/complete-survey.dto';
+import { CreateSurveyDto } from './dto/create-survey.dto';
+import { UpdateSurveyDto } from './dto/update-survey.dto';
+import { CompleteSurveyDto } from './dto/complete-survey.dto';
 import { Surveys } from '../entities/surveys.entity';
 import { EntityWithId } from 'src/survey.type';
-import { Questions } from 'src/questions/entities/questions.entity';
-import { Options } from 'src/options/entities/options.entity';
-import { Answers } from 'src/answers/entities/answers.entity';
-import { SurveysService } from '../services/surveys.service';
-import { Users } from 'src/users/entities/user.entity';
-import { CurrentUser } from 'src/auth/auth_guard/current-user.decorator';
-import { AuthGuardJwt } from 'src/auth/auth_guard/auth-guard.jwt';
+import { Questions } from 'src/entities/questions.entity';
+import { Options } from 'src/entities/options.entity';
+import { Answers } from 'src/entities/answers.entity';
+import { SurveysService } from './surveys.service';
+import { Users } from 'src/entities/user.entity';
+import { ApiTags } from '@nestjs/swagger';
 
 @Resolver(() => Surveys)
+@ApiTags('surveys')
 export class SurveysResolver {
   constructor(private readonly surveysService: SurveysService) {}
 
   // 설문지 목록조회 (getAllSurveys)
-  @Query(() => Surveys, { name: 'getAllSurveys' })
+  @Query(() => Surveys, {
+    name: 'getAllSurveys',
+    description: '설문지 목록조회',
+  })
   public async getAllSurveys() {
     return await this.surveysService.getAllSurveys();
   }
 
   // 단일 설문지 조회 (getSingleSurvey)
-  @Query(() => Surveys, { name: 'getSingleSurvey' })
+  @Query(() => Surveys, {
+    name: 'getSingleSurvey',
+    description: '단일 설문지 조회',
+  })
   public async getSingleSurvey(
     @Args('surveyId', { type: () => Int }) id: number,
   ) {
@@ -40,48 +46,54 @@ export class SurveysResolver {
   }
 
   // 완료된 설문지목록 조회 (getDoneSurveys)
-  @Query(() => [Surveys], { name: 'getDoneSurveys' })
+  @Query(() => [Surveys], {
+    name: 'getDoneSurveys',
+    description: '완료된 설문지 목록조회',
+  })
   public async getDoneSurveys() {
     return await this.surveysService.getDoneSurveys();
   }
 
   // 설문지 생성 (createSurvey)
-  @Mutation(() => Surveys, { name: 'createSurvey' })
-  @UseGuards(AuthGuardJwt)
+  @Mutation(() => Surveys, {
+    name: 'createSurvey',
+    description: '설문지 생성',
+  })
   public async createSurvey(
     @Args('createDto', { type: () => CreateSurveyDto })
     createDto: CreateSurveyDto,
-    @CurrentUser() user: Users,
   ) {
-    return await this.surveysService.createSurvey(createDto, user);
+    return await this.surveysService.createSurvey(createDto);
   }
 
   // 설문지 수정 (updateSurvey)
-  @Mutation(() => Surveys, { name: 'updateSurvey' })
-  @UseGuards(AuthGuardJwt)
+  @Mutation(() => Surveys, {
+    name: 'updateSurvey',
+    description: '설문지 수정',
+  })
   public async updateSurvey(
     @Args('surveyId', { type: () => Int }) id: number,
     @Args('updateDto', { type: () => UpdateSurveyDto })
     updateDto: UpdateSurveyDto,
-    @CurrentUser() user: Users,
   ) {
-    return await this.surveysService.updateSurvey(id, updateDto, user);
+    return await this.surveysService.updateSurvey(id, updateDto);
   }
 
   // 설문지 삭제 (deleteSurvey)
-  @Mutation(() => EntityWithId, { name: 'deleteSurvey' })
-  @UseGuards(AuthGuardJwt)
-  @HttpCode(204)
-  public async deleteSurvey(
-    @Args('surveyId', { type: () => Int }) id: number,
-    @CurrentUser() user: Users,
-  ) {
-    await this.surveysService.deleteSurvey(id, user);
+  @Mutation(() => EntityWithId, {
+    name: 'deleteSurvey',
+    description: '설문지 삭제',
+  })
+  public async deleteSurvey(@Args('surveyId', { type: () => Int }) id: number) {
+    await this.surveysService.deleteSurvey(id);
     return new EntityWithId(id);
   }
 
   // 설문지 완료 (completeSurvey)
-  @Mutation(() => Surveys, { name: 'completeSurvey' })
+  @Mutation(() => Surveys, {
+    name: 'completeSurvey',
+    description: '설문지 완료',
+  })
   public async completeSurvey(
     @Args('surveyId', { type: () => Int }) id: number,
     @Args('completeDto', { type: () => CompleteSurveyDto })

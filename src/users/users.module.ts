@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { UsersService } from './services/users.service';
-import { UsersResolver } from './resolvers/users.resolver';
+import { UsersService } from './users.service';
+import { UsersResolver } from './users.resolver';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Users } from './entities/user.entity';
+import { Users } from '../entities/user.entity';
 import { LocalStrategy } from '../auth/auth_guard/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from '../auth/auth_guard/jwt.strategy';

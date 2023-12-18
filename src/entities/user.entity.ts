@@ -9,9 +9,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { Status } from '../../auth/auth_guard/userinfo';
-import { Surveys } from 'src/surveys/entities/surveys.entity';
-import { Answers } from 'src/answers/entities/answers.entity';
+import { Surveys } from 'src/entities/surveys.entity';
+import { Answers } from 'src/entities/answers.entity';
 
 registerEnumType(Status, {
   name: 'Status',

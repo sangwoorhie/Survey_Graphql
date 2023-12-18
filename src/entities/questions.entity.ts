@@ -9,9 +9,9 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Surveys } from 'src/surveys/entities/surveys.entity';
-import { Answers } from 'src/answers/entities/answers.entity';
-import { Options } from 'src/options/entities/options.entity';
+import { Surveys } from 'src/entities/surveys.entity';
+import { Answers } from 'src/entities/answers.entity';
+import { Options } from 'src/entities/options.entity';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 
 @Entity({ schema: 'surveyproject', name: 'Questions' })

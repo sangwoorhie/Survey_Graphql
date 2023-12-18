@@ -7,14 +7,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateSurveyDto } from '../dto/create-survey.dto';
-import { UpdateSurveyDto } from '../dto/update-survey.dto';
-import { CompleteSurveyDto } from '../dto/complete-survey.dto';
+import { CreateSurveyDto } from './dto/create-survey.dto';
+import { UpdateSurveyDto } from './dto/update-survey.dto';
+import { CompleteSurveyDto } from './dto/complete-survey.dto';
 import { Repository } from 'typeorm';
 import { Surveys } from '../entities/surveys.entity';
 import { EntityWithId } from 'src/survey.type';
-import { Questions } from 'src/questions/entities/questions.entity';
-import { Users } from 'src/users/entities/user.entity';
+import { Questions } from 'src/entities/questions.entity';
+import { Users } from 'src/entities/user.entity';
 
 @Injectable()
 export class SurveysService {
@@ -81,10 +81,7 @@ export class SurveysService {
   }
 
   // 설문지 생성 (createSurvey)
-  async createSurvey(
-    createDto: CreateSurveyDto,
-    user: Users,
-  ): Promise<Surveys> {
+  async createSurvey(createDto: CreateSurveyDto): Promise<Surveys> {
     try {
       const { title, description } = createDto;
 
@@ -104,10 +101,8 @@ export class SurveysService {
           '중복된 내용의 설문지가 존재합니다. 다른 내용으로 작성해주세요.',
         );
       }
-      return await this.surveysRepository.save({
-        ...createDto,
-        user,
-      });
+      return await this.surveysRepository.save(createDto);
+
       // const create = this.surveysRepository.create(createDto);
       // return await this.surveysRepository.save(create);
     } catch (error) {
@@ -122,7 +117,6 @@ export class SurveysService {
   async updateSurvey(
     surveyId: number,
     updateDto: UpdateSurveyDto,
-    user: Users,
   ): Promise<Surveys> {
     try {
       const survey = await this.surveysRepository.findOne({
@@ -147,12 +141,6 @@ export class SurveysService {
           '중복된 내용의 설문지가 존재합니다. 다른 내용으로 수정해주세요.',
         );
       }
-      if (survey.userId !== user.id) {
-        throw new UnauthorizedException(
-          null,
-          '설문지를 수정할 수 있는 권한이 없습니다.',
-        );
-      }
 
       await this.surveysRepository.update(
         { id: surveyId },
@@ -168,17 +156,12 @@ export class SurveysService {
   }
 
   // 설문지 삭제 (deleteSurvey)
-  async deleteSurvey(surveyId: number, user: Users): Promise<EntityWithId> {
+  async deleteSurvey(surveyId: number): Promise<EntityWithId> {
     try {
       const survey = await this.surveysRepository.findOneOrFail({
         where: { id: surveyId },
       });
-      if (survey.userId !== user.id) {
-        throw new UnauthorizedException(
-          null,
-          '설문지를 삭제할 수 있는 권한이 없습니다.',
-        );
-      }
+
       await this.surveysRepository.remove(survey);
       return new EntityWithId(surveyId);
     } catch (error) {
