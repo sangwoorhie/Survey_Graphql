@@ -3,7 +3,7 @@
 <p align="center"><img src="https://github.com/sangwoorhie/BackEnd/assets/131964697/a62d2ac9-105f-4522-8f41-1f56b167617c"></p>
 
 ## 👜포트폴리오
-[[(Survey_Project_PortFolio)](https://www.canva.com/design/DAF2owP6eq8/6BfOvxrG4Mif-U_txclLeg/edit?utm_content=DAF2owP6eq8&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)]
+[[(Survey_Project_PortFolio)](https://lemon-coin-768.notion.site/Survey_Project-Portfolio-713555c804e8437fa8cf6bcd1717528e?pvs=4)]
 
 
 ## 🎯서비스 소개
