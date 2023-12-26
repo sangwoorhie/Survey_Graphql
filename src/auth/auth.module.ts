@@ -7,12 +7,14 @@ import { LocalStrategy } from './strategy/local.strategy';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategy/jwt.strategy';
+import { UsersResolver } from './user.resolver';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Users]),
     JwtModule.registerAsync({
       useFactory: () => ({
+        global: true,
         secret: process.env.AUTH_SECRET,
         signOptions: {
           expiresIn: '120m',

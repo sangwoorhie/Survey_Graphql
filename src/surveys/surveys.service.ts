@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -15,6 +16,7 @@ import { Surveys } from '../entities/surveys.entity';
 import { EntityWithId } from 'src/survey.type';
 import { Questions } from 'src/entities/questions.entity';
 import { Users } from 'src/entities/user.entity';
+import { Status } from 'src/auth/common/userinfo';
 
 @Injectable()
 export class SurveysService {
@@ -81,8 +83,16 @@ export class SurveysService {
   }
 
   // 설문지 생성 (createSurvey)
-  async createSurvey(createDto: CreateSurveyDto): Promise<Surveys> {
+  async createSurvey(
+    createDto: CreateSurveyDto,
+    user: Users,
+  ): Promise<Surveys> {
     try {
+      if (user.status !== 'teacher') {
+        throw new UnauthorizedException(
+          '선생님만 설문지를 생성할 수 있습니다.',
+        );
+      }
       const { title, description } = createDto;
 
       const existTitle = await this.surveysRepository.findOne({
@@ -101,10 +111,12 @@ export class SurveysService {
           '중복된 내용의 설문지가 존재합니다. 다른 내용으로 작성해주세요.',
         );
       }
-      return await this.surveysRepository.save(createDto);
-
-      // const create = this.surveysRepository.create(createDto);
-      // return await this.surveysRepository.save(create);
+      const survey = this.surveysRepository.create({
+        userId: user.id,
+        title: title,
+        description: description,
+      });
+      return await this.surveysRepository.save(survey);
     } catch (error) {
       this.logger.error(
         `해당 설문지 생성 중 에러가 발생했습니다: ${error.message}`,
@@ -117,11 +129,20 @@ export class SurveysService {
   async updateSurvey(
     surveyId: number,
     updateDto: UpdateSurveyDto,
+    user: Users,
   ): Promise<Surveys> {
     try {
-      const survey = await this.surveysRepository.findOne({
+      // 설문지없는경우 에러반환
+      const survey = await this.surveysRepository.findOneOrFail({
         where: { id: surveyId },
+        relations: ['user'],
       });
+      // 설문지 생성자만 수정가능, (생성자가 선생님이라는것은 생성시 이미 검증됨)
+      if (survey.userId !== user.id) {
+        throw new ForbiddenException(
+          '설문지를 생성한 본인만 수정이 가능합니다.',
+        );
+      }
 
       const { title, description } = updateDto;
 
@@ -156,11 +177,18 @@ export class SurveysService {
   }
 
   // 설문지 삭제 (deleteSurvey)
-  async deleteSurvey(surveyId: number): Promise<EntityWithId> {
+  async deleteSurvey(surveyId: number, user: Users): Promise<EntityWithId> {
     try {
       const survey = await this.surveysRepository.findOneOrFail({
         where: { id: surveyId },
+        relations: ['user'],
       });
+      // 설문지 생성자만 삭제가능 (생성자가 선생님이라는것은 생성시 이미 검증됨)
+      if (survey.userId !== user.id) {
+        throw new ForbiddenException(
+          '설문지를 생성한 본인만 삭제가 가능합니다.',
+        );
+      }
 
       await this.surveysRepository.remove(survey);
       return new EntityWithId(surveyId);
@@ -176,11 +204,19 @@ export class SurveysService {
   async completeSurvey(
     surveyId: number,
     completeDto: CompleteSurveyDto,
+    user: Users,
   ): Promise<Surveys> {
     try {
       const survey = await this.surveysRepository.findOneOrFail({
         where: { id: surveyId },
+        relations: ['user'],
       });
+
+      // 설문지 완료는 학생만 가능함
+      if (user.status !== 'student') {
+        throw new UnauthorizedException('학생만 설문지를 완료할 수 있습니다.');
+      }
+
       if (survey.isDone === true) {
         throw new BadRequestException('이미 완료된 설문지입니다.');
       }

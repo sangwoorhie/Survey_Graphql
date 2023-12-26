@@ -11,6 +11,7 @@ import {
 import { Questions } from 'src/entities/questions.entity';
 import { Surveys } from 'src/entities/surveys.entity';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Users } from './user.entity';
 
 @Entity({ schema: 'surveyproject', name: 'Options' })
 @ObjectType()
@@ -66,4 +67,12 @@ export class Options {
   @Field(() => Questions, { nullable: false })
   @JoinColumn({ name: 'questionId' })
   question: Promise<Questions>;
+
+  // Options - User : N : 1 관계
+  @ManyToOne(() => Users, (user) => user.options)
+  @Field(() => Users, { nullable: false })
+  @JoinColumn({ name: 'userId' })
+  user: Promise<Users>;
+  @Column({ nullable: true })
+  userId: number;
 }

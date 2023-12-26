@@ -20,6 +20,7 @@ import { SurveysService } from './surveys.service';
 import { Users } from 'src/entities/user.entity';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthGuardJwtGql } from 'src/auth/guard/auth-guard.jwt.gql';
+import { CurrentUser } from 'src/auth/common/current-user.decorator';
 
 @Resolver(() => Surveys)
 @ApiTags('surveys')
@@ -64,8 +65,9 @@ export class SurveysResolver {
   public async createSurvey(
     @Args('createDto', { type: () => CreateSurveyDto })
     createDto: CreateSurveyDto,
+    @CurrentUser() user: Users,
   ) {
-    return await this.surveysService.createSurvey(createDto);
+    return await this.surveysService.createSurvey(createDto, user);
   }
 
   // 설문지 수정 (updateSurvey)
@@ -78,8 +80,9 @@ export class SurveysResolver {
     @Args('surveyId', { type: () => Int }) id: number,
     @Args('updateDto', { type: () => UpdateSurveyDto })
     updateDto: UpdateSurveyDto,
+    @CurrentUser() user: Users,
   ) {
-    return await this.surveysService.updateSurvey(id, updateDto);
+    return await this.surveysService.updateSurvey(id, updateDto, user);
   }
 
   // 설문지 삭제 (deleteSurvey)
@@ -88,8 +91,11 @@ export class SurveysResolver {
     description: '설문지 삭제',
   })
   @UseGuards(AuthGuardJwtGql)
-  public async deleteSurvey(@Args('surveyId', { type: () => Int }) id: number) {
-    await this.surveysService.deleteSurvey(id);
+  public async deleteSurvey(
+    @Args('surveyId', { type: () => Int }) id: number,
+    @CurrentUser() user: Users,
+  ) {
+    await this.surveysService.deleteSurvey(id, user);
     return new EntityWithId(id);
   }
 
@@ -103,8 +109,9 @@ export class SurveysResolver {
     @Args('surveyId', { type: () => Int }) id: number,
     @Args('completeDto', { type: () => CompleteSurveyDto })
     completeDto: CompleteSurveyDto,
+    @CurrentUser() user: Users,
   ) {
-    return await this.surveysService.completeSurvey(id, completeDto);
+    return await this.surveysService.completeSurvey(id, completeDto, user);
   }
 
   // relations
@@ -126,9 +133,9 @@ export class SurveysResolver {
     return await survey.answers;
   }
 
-  // Survey - User = N : N
-  @ResolveField('users', () => [Users])
-  public async surveys(@Parent() surveys: Surveys): Promise<Users[]> {
-    return await surveys.users;
+  // Survey - User = N : 1
+  @ResolveField('users')
+  public async surveys(@Parent() surveys: Surveys): Promise<Users> {
+    return await surveys.user;
   }
 }

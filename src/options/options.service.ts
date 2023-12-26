@@ -1,9 +1,11 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateOptionDto } from './dto/create-option.dto';
 import { Repository } from 'typeorm';
@@ -13,6 +15,7 @@ import { UpdateOptionDto } from './dto/update-option.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Surveys } from 'src/entities/surveys.entity';
 import { Questions } from 'src/entities/questions.entity';
+import { Users } from 'src/entities/user.entity';
 
 @Injectable()
 export class OptionsService {
@@ -105,6 +108,7 @@ export class OptionsService {
     surveyId: number,
     questionId: number,
     createDto: CreateOptionDto,
+    user: Users,
   ): Promise<Options> {
     try {
       await this.questionsRepository.findOneOrFail({
@@ -112,7 +116,14 @@ export class OptionsService {
           survey: { id: surveyId },
           id: questionId,
         },
+        relations: ['user'],
       });
+
+      if (user.status !== 'teacher') {
+        throw new UnauthorizedException(
+          '선생님만 선택지를 생성할 수 있습니다.',
+        );
+      }
 
       // 선택지 중복검사
       const option = await this.existOption(surveyId, questionId, createDto);
@@ -134,6 +145,7 @@ export class OptionsService {
 
       const { optionNumber, content, optionScore } = createDto;
       const newOption = this.optionsRepository.create({
+        userId: user.id,
         surveyId,
         questionId,
         optionNumber,
@@ -155,6 +167,7 @@ export class OptionsService {
     questionId: number,
     optionId: number,
     updateDto: UpdateOptionDto,
+    user: Users,
   ): Promise<Options> {
     try {
       const option = await this.optionsRepository.findOneOrFail({
@@ -163,8 +176,15 @@ export class OptionsService {
           question: { id: questionId },
           id: optionId,
         },
+        relations: ['user'],
       });
 
+      // 선택지 생성자만 수정가능, (선택지 생성자가 선생님이라는것은 생성시 이미 검증됨)
+      if (option.userId !== user.id) {
+        throw new ForbiddenException(
+          '선택지를 생성한 본인만 수정이 가능합니다.',
+        );
+      }
       const existContent = await this.optionsRepository.findOne({
         where: {
           survey: { id: surveyId },
@@ -204,6 +224,7 @@ export class OptionsService {
     surveyId: number,
     questionId: number,
     optionId: number,
+    user: Users,
   ): Promise<EntityWithId> {
     try {
       const option = await this.optionsRepository.findOne({
@@ -212,7 +233,16 @@ export class OptionsService {
           question: { id: questionId },
           id: optionId,
         },
+        relations: ['user'],
       });
+
+      // 선택지 생성자만 삭제가능 (생성자가 선생님이라는것은 생성시 이미 검증됨)
+      if (option.userId !== user.id) {
+        throw new ForbiddenException(
+          '선택지를 생성한 본인만 삭제가 가능합니다.',
+        );
+      }
+
       await this.optionsRepository.remove(option);
       return new EntityWithId(optionId);
     } catch (error) {

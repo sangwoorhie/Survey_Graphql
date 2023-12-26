@@ -17,6 +17,8 @@ import { Surveys } from 'src/entities/surveys.entity';
 import { Answers } from 'src/entities/answers.entity';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuardJwtGql } from 'src/auth/guard/auth-guard.jwt.gql';
+import { CurrentUser } from 'src/auth/common/current-user.decorator';
+import { Users } from 'src/entities/user.entity';
 
 @Resolver(() => Questions)
 export class QuestionsResolver {
@@ -55,10 +57,15 @@ export class QuestionsResolver {
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('createDto', { type: () => CreateQuestionDto })
     createDto: CreateQuestionDto,
+    @CurrentUser() user: Users,
   ) {
     const question = new Questions();
     question.surveyId = surveyId;
-    return await this.questionsService.createQuestion(surveyId, createDto);
+    return await this.questionsService.createQuestion(
+      surveyId,
+      createDto,
+      user,
+    );
   }
 
   // 문항 수정 (updateQuestion) => 내용만 수정 가능
@@ -72,8 +79,14 @@ export class QuestionsResolver {
     @Args('questionId', { type: () => Int }) id: number,
     @Args('updateDto', { type: () => UpdateQuestionDto })
     updateDto: UpdateQuestionDto,
+    @CurrentUser() user: Users,
   ) {
-    return await this.questionsService.updateQuestion(surveyId, id, updateDto);
+    return await this.questionsService.updateQuestion(
+      surveyId,
+      id,
+      updateDto,
+      user,
+    );
   }
 
   // 문항 삭제 (deleteQuestion)
@@ -85,8 +98,9 @@ export class QuestionsResolver {
   public async deleteQuestion(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) id: number,
+    @CurrentUser() user: Users,
   ) {
-    await this.questionsService.deleteQuestion(surveyId, id);
+    await this.questionsService.deleteQuestion(surveyId, id, user);
     return new EntityWithId(id);
   }
 

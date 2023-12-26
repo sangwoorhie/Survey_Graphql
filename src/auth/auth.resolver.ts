@@ -1,34 +1,21 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
-import { AuthService } from './auth.service';
-import { CreateAuthInput } from './dto/create-user.dto';
-import { UpdateAuthInput } from './dto/update-auth.input';
+import { AuthService } from 'src/auth/auth.service';
+import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { TokenOutput } from './dto/token.output';
+import { LoginDto } from './dto/login.dto';
 
-@Resolver('Auth')
+@Resolver()
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
-  @Mutation('createAuth')
-  create(@Args('createAuthInput') createAuthInput: CreateAuthInput) {
-    return this.authService.create(createAuthInput);
-  }
-
-  @Query('auth')
-  findAll() {
-    return this.authService.findAll();
-  }
-
-  @Query('auth')
-  findOne(@Args('id') id: number) {
-    return this.authService.findOne(id);
-  }
-
-  @Mutation('updateAuth')
-  update(@Args('updateAuthInput') updateAuthInput: UpdateAuthInput) {
-    return this.authService.update(updateAuthInput.id, updateAuthInput);
-  }
-
-  @Mutation('removeAuth')
-  remove(@Args('id') id: number) {
-    return this.authService.remove(id);
+  // 로그인
+  @Mutation(() => TokenOutput, { name: 'login' })
+  public async login(
+    @Args('input', { type: () => LoginDto }) input: LoginDto,
+  ): Promise<TokenOutput> {
+    return new TokenOutput({
+      token: this.authService.getTokenForUser(
+        await this.authService.validateUser(input.email, input.password),
+      ),
+    });
   }
 }

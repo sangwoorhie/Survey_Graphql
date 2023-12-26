@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateAnswerDto } from './dto/create-answer.dto';
 import { Repository } from 'typeorm';
@@ -13,6 +15,7 @@ import { Questions } from 'src/entities/questions.entity';
 import { OptionsService } from 'src/options/options.service';
 import { UpdateAnswerDto } from './dto/update-answer.dto';
 import { Surveys } from 'src/entities/surveys.entity';
+import { Users } from 'src/entities/user.entity';
 
 @Injectable()
 export class AnswersService {
@@ -83,6 +86,7 @@ export class AnswersService {
     surveyId: number,
     questionId: number,
     createDto: CreateAnswerDto,
+    user: Users,
   ): Promise<Answers> {
     try {
       const question = await this.questionsRepository.findOne({
@@ -90,7 +94,12 @@ export class AnswersService {
           survey: { id: surveyId },
           id: questionId,
         },
+        relations: ['user'],
       });
+      // 학생만 답변생성 가능
+      if (user.status !== 'student') {
+        throw new UnauthorizedException('학생만 답안을 생성할 수 있습니다.');
+      }
 
       // 답변 생성 및 수정용 답안번호와 동일한 선택지번호 조회
       const { answerNumber } = createDto;
@@ -107,6 +116,7 @@ export class AnswersService {
       });
 
       const create = this.answersRepository.create({
+        userId: user.id,
         surveyId,
         questionId,
         answerNumber,
@@ -138,6 +148,7 @@ export class AnswersService {
     questionId: number,
     answerId: number,
     updateDto: UpdateAnswerDto,
+    user: Users,
   ): Promise<Answers> {
     try {
       const question = await this.questionsRepository.findOne({
@@ -152,7 +163,13 @@ export class AnswersService {
           question: { id: questionId },
           id: answerId,
         },
+        relations: ['user'],
       });
+
+      // 답안 생성자만 수정가능, (답안 생성자가 학생이라는것은 생성시 이미 검증됨)
+      if (answer.userId !== user.id) {
+        throw new ForbiddenException('답안을 작성한 본인만 수정이 가능합니다.');
+      }
 
       const survey = await this.surveysRepository.findOne({
         where: {
@@ -201,6 +218,7 @@ export class AnswersService {
     surveyId: number,
     questionId: number,
     answerId: number,
+    user: Users,
   ): Promise<EntityWithId> {
     try {
       const survey = await this.surveysRepository.findOne({
@@ -221,7 +239,14 @@ export class AnswersService {
           question: { id: questionId },
           id: answerId,
         },
+        relations: ['user'],
       });
+
+      // 답안 생성자만 삭제가능, (답안 생성자가 학생이라는것은 생성시 이미 검증됨)
+      if (answer.userId !== user.id) {
+        throw new ForbiddenException('답안을 작성한 본인만 삭제가 가능합니다.');
+      }
+
       // 답변 삭제된 문항 상태 false로 변경 및 0점처리
       const remove = await this.answersRepository.remove(answer);
       if (remove) {

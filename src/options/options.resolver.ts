@@ -16,6 +16,8 @@ import { Surveys } from 'src/entities/surveys.entity';
 import { Questions } from 'src/entities/questions.entity';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuardJwtGql } from 'src/auth/guard/auth-guard.jwt.gql';
+import { CurrentUser } from 'src/auth/common/current-user.decorator';
+import { Users } from 'src/entities/user.entity';
 
 @Resolver(() => Options)
 export class OptionsResolver {
@@ -54,11 +56,13 @@ export class OptionsResolver {
     @Args('questionId', { type: () => Int }) questionId: number,
     @Args('createDto', { type: () => CreateOptionDto })
     createDto: CreateOptionDto,
+    @CurrentUser() user: Users,
   ) {
     return await this.optionsService.createOption(
       surveyId,
       questionId,
       createDto,
+      user,
     );
   }
 
@@ -71,12 +75,14 @@ export class OptionsResolver {
     @Args('optionId', { type: () => Int }) id: number,
     @Args('updateDto', { type: () => UpdateOptionDto })
     updateDto: UpdateOptionDto,
+    @CurrentUser() user: Users,
   ) {
     return await this.optionsService.updateOption(
       surveyId,
       questionId,
       id,
       updateDto,
+      user,
     );
   }
 
@@ -90,8 +96,9 @@ export class OptionsResolver {
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,
     @Args('optionId', { type: () => Int }) id: number,
+    @CurrentUser() user: Users,
   ) {
-    await this.optionsService.deleteOption(surveyId, questionId, id);
+    await this.optionsService.deleteOption(surveyId, questionId, id, user);
     return new EntityWithId(id);
   }
 

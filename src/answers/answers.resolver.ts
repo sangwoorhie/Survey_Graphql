@@ -16,6 +16,8 @@ import { Surveys } from 'src/entities/surveys.entity';
 import { Questions } from 'src/entities/questions.entity';
 import { HttpCode, UseGuards } from '@nestjs/common';
 import { AuthGuardJwtGql } from 'src/auth/guard/auth-guard.jwt.gql';
+import { CurrentUser } from 'src/auth/common/current-user.decorator';
+import { Users } from 'src/entities/user.entity';
 
 @Resolver(() => Answers)
 export class AnswersResolver {
@@ -48,11 +50,13 @@ export class AnswersResolver {
     @Args('questionId', { type: () => Int }) questionId: number,
     @Args('createDto', { type: () => CreateAnswerDto })
     createDto: CreateAnswerDto,
+    @CurrentUser() user: Users,
   ) {
     return await this.answersService.createAnswer(
       surveyId,
       questionId,
       createDto,
+      user,
     );
   }
 
@@ -65,12 +69,14 @@ export class AnswersResolver {
     @Args('answerId', { type: () => Int }) id: number,
     @Args('updateDto', { type: () => UpdateAnswerDto })
     updateDto: UpdateAnswerDto,
+    @CurrentUser() user: Users,
   ) {
     return await this.answersService.updateAnswer(
       surveyId,
       questionId,
       id,
       updateDto,
+      user,
     );
   }
 
@@ -82,8 +88,9 @@ export class AnswersResolver {
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,
     @Args('answerId', { type: () => Int }) id: number,
+    @CurrentUser() user: Users,
   ) {
-    await this.answersService.deleteAnswer(surveyId, questionId, id);
+    await this.answersService.deleteAnswer(surveyId, questionId, id, user);
     return new EntityWithId(id);
   }
 

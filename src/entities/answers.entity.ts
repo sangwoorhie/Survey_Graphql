@@ -57,6 +57,8 @@ export class Answers {
   // Answer - User : N : 1 관계
   @ManyToOne(() => Users, (user) => user.answers)
   @JoinColumn({ name: 'userId' })
-  @Field(() => Users, { nullable: false })
   user: Promise<Users>;
+  @Field(() => Users, { nullable: false })
+  @Column({ nullable: true })
+  userId: number;
 }

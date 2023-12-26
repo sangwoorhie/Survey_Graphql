@@ -12,6 +12,8 @@ import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Status } from 'src/auth/common/userinfo';
 import { Surveys } from 'src/entities/surveys.entity';
 import { Answers } from 'src/entities/answers.entity';
+import { Questions } from './questions.entity';
+import { Options } from './options.entity';
 
 registerEnumType(Status, {
   name: 'Status',
@@ -45,7 +47,7 @@ export class Users {
   @Field(() => String)
   name: string;
 
-  @Column({ type: 'enum', enum: Status, default: Status.PROFESSOR })
+  @Column({ type: 'enum', enum: Status, default: Status.TEACHER })
   @Field(() => Status)
   status: Status;
 
@@ -58,13 +60,12 @@ export class Users {
   updatedAt: Date;
 
   // 관계설정
-  // User - Survey : N : N 관계
-  @ManyToMany(() => Surveys, (surveys) => surveys.users, {
+  // User - Survey : 1 : N 관계
+  @OneToMany(() => Surveys, (surveys) => surveys.user, {
     cascade: false,
   })
-  @JoinTable()
   @Field(() => [Surveys])
-  surveys: Surveys[];
+  surveys: Promise<Surveys[]>;
 
   // User - Answer : 1 : N 관계
   @OneToMany(() => Answers, (answers) => answers.user, {
@@ -72,4 +73,18 @@ export class Users {
   })
   @Field(() => [Answers])
   answers: Promise<Answers[]>; // Lazy Relations
+
+  // User - Option : 1 : N 관계
+  @OneToMany(() => Options, (options) => options.user, {
+    cascade: true,
+  })
+  @Field(() => [Options])
+  options: Promise<Options[]>;
+
+  // User - Question : 1 : N 관계
+  @OneToMany(() => Questions, (questions) => questions.user, {
+    cascade: true,
+  })
+  @Field(() => [Questions])
+  questions: Promise<Questions[]>;
 }

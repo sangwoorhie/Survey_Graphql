@@ -11,10 +11,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     @InjectRepository(Users)
     private readonly usersRepository: Repository<Users>,
   ) {
+    const secretOrKey = process.env.AUTH_SECRET || 'fallbackSecret';
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.AUTH_SECRET,
+      secretOrKey: secretOrKey,
     });
   }
 

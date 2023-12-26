@@ -5,6 +5,7 @@ import {
   JoinColumn,
   JoinTable,
   ManyToMany,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -78,15 +79,12 @@ export class Surveys {
   @Field(() => [Answers])
   answers: Promise<Answers[]>; // Lazy Relations
 
-  // Survey - User : N : N 관계
-  @ManyToMany(() => Users, (users) => users.surveys, {
+  // Survey - User : N : 1 관계
+  @ManyToOne(() => Users, (user) => user.surveys, {
     cascade: false,
   })
-  // @JoinTable()
-  @Field(() => [Users])
-  users: Users[];
-
-  @Column({ type: 'int', nullable: true })
-  @Field(() => Int)
+  @JoinColumn({ name: 'userId' })
+  user: Promise<Users>;
+  @Column({ nullable: true })
   userId: number;
 }
