@@ -14,6 +14,8 @@ import { UpdateOptionDto } from './dto/update-option.dto';
 import { EntityWithId } from 'src/survey.type';
 import { Surveys } from 'src/entities/surveys.entity';
 import { Questions } from 'src/entities/questions.entity';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuardJwtGql } from 'src/auth/guard/auth-guard.jwt.gql';
 
 @Resolver(() => Options)
 export class OptionsResolver {
@@ -46,6 +48,7 @@ export class OptionsResolver {
 
   // 선택지 생성 (createOption)
   @Mutation(() => Options, { name: 'createOption', description: '선택지 생성' })
+  @UseGuards(AuthGuardJwtGql)
   public async createOption(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,
@@ -61,6 +64,7 @@ export class OptionsResolver {
 
   // 선택지 수정 (updateOption) => 내용(content)만 수정 가능
   @Mutation(() => Options, { name: 'updateOption', description: '선택지 수정' })
+  @UseGuards(AuthGuardJwtGql)
   public async updateOption(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,
@@ -81,6 +85,7 @@ export class OptionsResolver {
     name: 'deleteOption',
     description: '선택지 삭제',
   })
+  @UseGuards(AuthGuardJwtGql)
   public async deleteOption(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,

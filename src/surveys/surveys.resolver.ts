@@ -19,6 +19,7 @@ import { Answers } from 'src/entities/answers.entity';
 import { SurveysService } from './surveys.service';
 import { Users } from 'src/entities/user.entity';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthGuardJwtGql } from 'src/auth/guard/auth-guard.jwt.gql';
 
 @Resolver(() => Surveys)
 @ApiTags('surveys')
@@ -59,6 +60,7 @@ export class SurveysResolver {
     name: 'createSurvey',
     description: '설문지 생성',
   })
+  @UseGuards(AuthGuardJwtGql)
   public async createSurvey(
     @Args('createDto', { type: () => CreateSurveyDto })
     createDto: CreateSurveyDto,
@@ -71,6 +73,7 @@ export class SurveysResolver {
     name: 'updateSurvey',
     description: '설문지 수정',
   })
+  @UseGuards(AuthGuardJwtGql)
   public async updateSurvey(
     @Args('surveyId', { type: () => Int }) id: number,
     @Args('updateDto', { type: () => UpdateSurveyDto })
@@ -84,6 +87,7 @@ export class SurveysResolver {
     name: 'deleteSurvey',
     description: '설문지 삭제',
   })
+  @UseGuards(AuthGuardJwtGql)
   public async deleteSurvey(@Args('surveyId', { type: () => Int }) id: number) {
     await this.surveysService.deleteSurvey(id);
     return new EntityWithId(id);
@@ -94,6 +98,7 @@ export class SurveysResolver {
     name: 'completeSurvey',
     description: '설문지 완료',
   })
+  @UseGuards(AuthGuardJwtGql)
   public async completeSurvey(
     @Args('surveyId', { type: () => Int }) id: number,
     @Args('completeDto', { type: () => CompleteSurveyDto })

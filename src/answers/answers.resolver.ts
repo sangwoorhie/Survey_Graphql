@@ -14,7 +14,8 @@ import { UpdateAnswerDto } from './dto/update-answer.dto';
 import { EntityWithId } from 'src/survey.type';
 import { Surveys } from 'src/entities/surveys.entity';
 import { Questions } from 'src/entities/questions.entity';
-import { HttpCode } from '@nestjs/common';
+import { HttpCode, UseGuards } from '@nestjs/common';
+import { AuthGuardJwtGql } from 'src/auth/guard/auth-guard.jwt.gql';
 
 @Resolver(() => Answers)
 export class AnswersResolver {
@@ -41,6 +42,7 @@ export class AnswersResolver {
 
   // 답안 생성 (createAnswer)
   @Mutation(() => Answers, { name: 'createAnswer' })
+  @UseGuards(AuthGuardJwtGql)
   public async createAnswer(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,
@@ -56,6 +58,7 @@ export class AnswersResolver {
 
   // 답안 수정 (updateAnswer)
   @Mutation(() => Answers, { name: 'updateAnswer' })
+  @UseGuards(AuthGuardJwtGql)
   public async updateAnswer(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) questionId: number,
@@ -73,6 +76,7 @@ export class AnswersResolver {
 
   // 답안 삭제 (deleteAnswer)
   @Mutation(() => EntityWithId, { name: 'deleteAnswer' })
+  @UseGuards(AuthGuardJwtGql)
   @HttpCode(204)
   public async deleteAnswer(
     @Args('surveyId', { type: () => Int }) surveyId: number,

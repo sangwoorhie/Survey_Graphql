@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Status } from 'src/auth/common/userinfo';
 import { Surveys } from 'src/entities/surveys.entity';
 import { Answers } from 'src/entities/answers.entity';
 

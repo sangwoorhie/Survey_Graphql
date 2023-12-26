@@ -1,26 +1,22 @@
+import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
-import { CreateAuthInput } from './dto/create-auth.input';
-import { UpdateAuthInput } from './dto/update-auth.input';
+import { Users } from 'src/entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  create(createAuthInput: CreateAuthInput) {
-    return 'This action adds a new auth';
+  constructor(private readonly JwtService: JwtService) {}
+
+  // 토큰발급
+  public getTokenForUser(user: Users): string {
+    return this.JwtService.sign({
+      email: user.email,
+      sub: user.id,
+    });
   }
 
-  findAll() {
-    return `This action returns all auth`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
-
-  update(id: number, updateAuthInput: UpdateAuthInput) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+  // 해시패스워드
+  public async hashPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, 10);
   }
 }

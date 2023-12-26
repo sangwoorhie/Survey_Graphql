@@ -132,9 +132,6 @@ export class OptionsService {
         );
       }
 
-      // 선택지 순서대로 (Sequential Numbering)
-      // await this.SequentialNumbering(surveyId, questionId, createDto);
-
       const { optionNumber, content, optionScore } = createDto;
       const newOption = this.optionsRepository.create({
         surveyId,

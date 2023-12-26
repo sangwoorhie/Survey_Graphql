@@ -15,6 +15,8 @@ import { Options } from 'src/entities/options.entity';
 import { QuestionsService } from './questions.service';
 import { Surveys } from 'src/entities/surveys.entity';
 import { Answers } from 'src/entities/answers.entity';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuardJwtGql } from 'src/auth/guard/auth-guard.jwt.gql';
 
 @Resolver(() => Questions)
 export class QuestionsResolver {
@@ -48,6 +50,7 @@ export class QuestionsResolver {
     name: 'createQuestion',
     description: '문항 생성',
   })
+  @UseGuards(AuthGuardJwtGql)
   public async createQuestion(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('createDto', { type: () => CreateQuestionDto })
@@ -63,6 +66,7 @@ export class QuestionsResolver {
     name: 'updateQuestion',
     description: '문항 수정',
   })
+  @UseGuards(AuthGuardJwtGql)
   public async updateQuestion(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) id: number,
@@ -77,6 +81,7 @@ export class QuestionsResolver {
     name: 'deleteQuestion',
     description: '문항 삭제',
   })
+  @UseGuards(AuthGuardJwtGql)
   public async deleteQuestion(
     @Args('surveyId', { type: () => Int }) surveyId: number,
     @Args('questionId', { type: () => Int }) id: number,
